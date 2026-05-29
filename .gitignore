@@ -1,0 +1,33 @@
+ 
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+*.env
+
+# Django
+*.log
+db.sqlite3
+
+# Anaconda / venv
+env/
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Node (para el frontend después)
+node_modules/
+build/
+dist/
+
+# OS
+.DS_Store
+Thumbs.db
