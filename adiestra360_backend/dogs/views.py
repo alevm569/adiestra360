@@ -196,7 +196,7 @@ def create_dog_profile(request):
 
     # Crear perro
     dog_data['id'] = str(uuid.uuid4())
-    dog_data['user_id'] = str(user.id)
+    dog_data['user'] = str(user.id)
     dog_data['training_level'] = training_level
 
     serializer = DogSerializer(data=dog_data)

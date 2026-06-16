@@ -1,0 +1,31 @@
+[
+  {"model": "training.traininglevels", "pk": "lvl-001", "fields": {"name": "Nivel 1", "description": "Obediencia básica. Fundamentos del adiestramiento canino."}},
+  {"model": "training.traininglevels", "pk": "lvl-002", "fields": {"name": "Nivel 2", "description": "Obediencia intermedia. Ejercicios de mayor complejidad y precisión."}},
+
+  {"model": "training.exercises", "pk": "ex-001", "fields": {"level_id": "lvl-001", "name": "Siéntate", "description": "El perro se sienta ante la orden verbal o señal.", "difficulty": 1, "estimated_duration": 10}},
+  {"model": "training.exercises", "pk": "ex-002", "fields": {"level_id": "lvl-001", "name": "Échate", "description": "El perro se echa ante la orden verbal o señal.", "difficulty": 2, "estimated_duration": 10}},
+  {"model": "training.exercises", "pk": "ex-003", "fields": {"level_id": "lvl-001", "name": "Llamado", "description": "El perro acude al llamado del dueño.", "difficulty": 3, "estimated_duration": 10}},
+  {"model": "training.exercises", "pk": "ex-004", "fields": {"level_id": "lvl-001", "name": "Quédate", "description": "El perro permanece quieto en un lugar hasta nueva orden.", "difficulty": 4, "estimated_duration": 15}},
+  {"model": "training.exercises", "pk": "ex-005", "fields": {"level_id": "lvl-001", "name": "Lugar", "description": "El perro va a su lugar o cama ante la orden.", "difficulty": 5, "estimated_duration": 10}},
+  {"model": "training.exercises", "pk": "ex-006", "fields": {"level_id": "lvl-001", "name": "Obediencia a la pierna", "description": "El perro camina junto al dueño sin jalar la correa. Orden: Junto.", "difficulty": 6, "estimated_duration": 15}},
+
+  {"model": "training.exercises", "pk": "ex-007", "fields": {"level_id": "lvl-002", "name": "Obediencia a la pierna sin collar", "description": "El perro camina junto al dueño sin correa ni collar.", "difficulty": 1, "estimated_duration": 15}},
+  {"model": "training.exercises", "pk": "ex-008", "fields": {"level_id": "lvl-002", "name": "Disciplina al frente con señas", "description": "Siéntate, échate, aquí y lugar ejecutados solo con señas.", "difficulty": 2, "estimated_duration": 15}},
+  {"model": "training.exercises", "pk": "ex-009", "fields": {"level_id": "lvl-002", "name": "Rastreo de terreno", "description": "El perro rastrea un objeto o persona por olfato.", "difficulty": 3, "estimated_duration": 20}},
+  {"model": "training.exercises", "pk": "ex-010", "fields": {"level_id": "lvl-002", "name": "Trucos", "description": "Ejercicios de habilidad: dar la pata, rodar, entre otros.", "difficulty": 4, "estimated_duration": 15}},
+  {"model": "training.exercises", "pk": "ex-011", "fields": {"level_id": "lvl-002", "name": "Agility", "description": "Pista de obstáculos básica: túnel, vallas, slalom.", "difficulty": 5, "estimated_duration": 20}},
+  {"model": "training.exercises", "pk": "ex-012", "fields": {"level_id": "lvl-002", "name": "Detección de olores", "description": "El perro identifica y señala un olor específico.", "difficulty": 6, "estimated_duration": 20}},
+
+  {"model": "training.reinforcementtypes", "pk": "ref-001", "fields": {"name": "Comida"}},
+  {"model": "training.reinforcementtypes", "pk": "ref-002", "fields": {"name": "Pelota"}},
+  {"model": "training.reinforcementtypes", "pk": "ref-003", "fields": {"name": "Caricias"}},
+  {"model": "training.reinforcementtypes", "pk": "ref-004", "fields": {"name": "Clicker"}},
+  {"model": "training.reinforcementtypes", "pk": "ref-005", "fields": {"name": "Juguete"}},
+
+  {"model": "gamification.achievements", "pk": "ach-001", "fields": {"name": "Primera sesión", "description": "Completaste tu primera sesión de entrenamiento.", "xp_reward": 10}},
+  {"model": "gamification.achievements", "pk": "ach-002", "fields": {"name": "Racha de 3 días", "description": "Entrenaste 3 días consecutivos.", "xp_reward": 20}},
+  {"model": "gamification.achievements", "pk": "ach-003", "fields": {"name": "Semana constante", "description": "Entrenaste 7 días consecutivos.", "xp_reward": 50}},
+  {"model": "gamification.achievements", "pk": "ach-004", "fields": {"name": "10 sesiones completadas", "description": "Registraste 10 sesiones de entrenamiento.", "xp_reward": 30}},
+  {"model": "gamification.achievements", "pk": "ach-005", "fields": {"name": "50 sesiones completadas", "description": "Registraste 50 sesiones de entrenamiento.", "xp_reward": 100}},
+  {"model": "gamification.achievements", "pk": "ach-006", "fields": {"name": "Entrenador dedicado", "description": "Entrenaste 30 días consecutivos.", "xp_reward": 150}}
+]

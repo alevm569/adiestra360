@@ -2,14 +2,13 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from django.contrib.auth.hashers import check_password
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Users, UserStreaks
 from .serializers import RegisterSerializer, UserSerializer, UserStreakSerializer
 import uuid
 
 def get_tokens_for_user(user):
-    refresh = RefreshToken()
+    refresh = RefreshToken.for_user(user)
     refresh['user_id'] = str(user.id)
     refresh['email'] = user.email
     refresh['name'] = user.name
@@ -50,7 +49,7 @@ def login(request):
             status=status.HTTP_401_UNAUTHORIZED
         )
 
-    if not check_password(password, user.password):
+    if not user.check_password(password):
         return Response(
             {'error': 'Credenciales inválidas'},
             status=status.HTTP_401_UNAUTHORIZED

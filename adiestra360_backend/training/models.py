@@ -31,7 +31,13 @@ class ReinforcementTypes(models.Model):
 class TrainingPlans(models.Model):
     id = models.CharField(primary_key=True, max_length=36, default=uuid.uuid4)
     dog = models.ForeignKey(Dogs, models.CASCADE)
-    current_level = models.ForeignKey(TrainingLevels, models.DO_NOTHING, blank=True, null=True)
+    current_level = models.ForeignKey(
+        TrainingLevels, 
+        models.DO_NOTHING, 
+        blank=True, 
+        null=True,
+        db_column='current_level'
+    )
     active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
