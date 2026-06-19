@@ -28,6 +28,7 @@ class Users(AbstractBaseUser):
     email = models.CharField(unique=True, max_length=150)
     password = models.CharField(max_length=255)
     experience_level = models.CharField(max_length=20, default='principiante')
+    total_xp = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
     objects = UsersManager()

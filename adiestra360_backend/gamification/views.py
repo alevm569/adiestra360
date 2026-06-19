@@ -59,11 +59,9 @@ def user_stats(request):
     except Users.DoesNotExist:
         return Response({'error': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
-    # XP total acumulado de logros
-    earned = UserAchievements.objects.filter(
-        user=user
-    ).select_related('achievement')
-    total_xp = sum(ua.achievement.xp_reward for ua in earned if ua.achievement.xp_reward)
+    # XP total acumulado (sesiones + logros) persistido en el usuario
+    total_xp = user.total_xp
+    earned = UserAchievements.objects.filter(user=user)
 
     # Nivel del usuario basado en XP
     # 0-99 XP → Principiante, 100-299 → Intermedio, 300+ → Avanzado
@@ -154,9 +152,8 @@ def dashboard(request, dog_id):
     # ── Racha ──
     streak = UserStreaks.objects.filter(user=user).first()
 
-    # ── XP y nivel ──
-    earned = UserAchievements.objects.filter(user=user).select_related('achievement')
-    total_xp = sum(ua.achievement.xp_reward for ua in earned if ua.achievement.xp_reward)
+    # ── XP y nivel ── (acumulado en el usuario: sesiones + logros)
+    total_xp = user.total_xp
     if total_xp < 100:
         user_level = 'Principiante'
     elif total_xp < 300:

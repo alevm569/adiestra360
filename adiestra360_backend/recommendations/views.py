@@ -115,9 +115,12 @@ def get_current_reinforcement(dog_id):
     if not plan:
         return None, None
 
-    plan_exercise = TrainingPlanExercises.objects.filter(
-        training_plan=plan
-    ).first()
+    # Preferir un ejercicio ACTIVO del plan (los inactivos son de niveles
+    # ya superados); como respaldo, cualquiera del plan.
+    plan_exercise = (
+        TrainingPlanExercises.objects.filter(training_plan=plan, active=True).first()
+        or TrainingPlanExercises.objects.filter(training_plan=plan).first()
+    )
 
     level_number = 1
     if plan.current_level:
@@ -190,14 +193,18 @@ def find_best_reinforcement(stats, current_reinforcement_id, category, dog_energ
     current_stats = stats.get(str(current_reinforcement_id))
     current_score = score_reinforcement(current_stats) if current_stats else 0
 
-    # Para disciplina en nivel 2, ajustar prioridad según energía
+    # Prioridad por categoría. Para 'disciplina' se ajusta según la energía
+    # del perro usando una variable LOCAL, sin mutar el diccionario global
+    # (que es estado compartido entre todas las requests).
     if category == 'disciplina':
         if dog_energy_level == 'alto':
-            CATEGORY_REINFORCEMENT_PRIORITY['disciplina'] = ['juguete', 'pelota', 'caricias', 'comida']
+            priority_names = ['juguete', 'pelota', 'caricias', 'comida']
         elif dog_energy_level == 'medio':
-            CATEGORY_REINFORCEMENT_PRIORITY['disciplina'] = ['comida', 'caricias', 'juguete']
+            priority_names = ['comida', 'caricias', 'juguete']
         else:  # bajo
-            CATEGORY_REINFORCEMENT_PRIORITY['disciplina'] = ['caricias', 'comida', 'clicker']
+            priority_names = ['caricias', 'comida', 'clicker']
+    else:
+        priority_names = CATEGORY_REINFORCEMENT_PRIORITY.get(category, [])
 
     # Obtener refuerzos candidatos según categoría
     if category == 'global':
@@ -208,7 +215,6 @@ def find_best_reinforcement(stats, current_reinforcement_id, category, dog_energ
         ]
     else:
         # Nivel 2: filtrar por prioridades de la categoría
-        priority_names = CATEGORY_REINFORCEMENT_PRIORITY.get(category, [])
         candidates = [
             stat for ref_id, stat in stats.items()
             if ref_id != str(current_reinforcement_id)

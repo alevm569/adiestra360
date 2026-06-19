@@ -37,11 +37,20 @@ REINFORCEMENT_MAP = {
 }
 
 EXPERIENCE_MAP = {
+    # Pregunta 10 (experiencia entrenando)
     'Sí, tengo experiencia': 'avanzado',
     'Solo lo básico': 'intermedio',
     'Nunca pero me informo': 'principiante',
     'Es mi primera vez': 'principiante',
+    # Pregunta 11 (conocimiento de refuerzo vs corrección)
+    'Sí, lo aplico': 'avanzado',
+    'Lo conozco pero no lo aplico': 'intermedio',
+    'Lo he escuchado': 'principiante',
+    'No lo conozco': 'principiante',
 }
+
+# Orden ascendente de experiencia, usado para promediar respuestas.
+EXPERIENCE_LEVELS = ['principiante', 'intermedio', 'avanzado']
 
 def calculate_initial_level(quiz_answers, energy_level):
     """
@@ -91,12 +100,22 @@ def calculate_initial_reinforcement(quiz_answers, energy_level):
 
 def calculate_experience_level(quiz_answers):
     """
-    Determina el nivel de experiencia del dueño.
+    Determina el nivel de experiencia del dueño promediando TODAS las
+    respuestas de experiencia del quiz (preguntas 10 y 11).
     """
+    scores = []
     for a in quiz_answers:
         if a.get('experience_related') == 'experience_level':
-            return EXPERIENCE_MAP.get(a['answer'], 'principiante')
-    return 'principiante'
+            level = EXPERIENCE_MAP.get(a['answer'], 'principiante')
+            scores.append(EXPERIENCE_LEVELS.index(level))
+
+    if not scores:
+        return 'principiante'
+
+    # Promedio redondeado (media hacia arriba en el .5) y acotado al rango.
+    index = int(sum(scores) / len(scores) + 0.5)
+    index = max(0, min(index, len(EXPERIENCE_LEVELS) - 1))
+    return EXPERIENCE_LEVELS[index]
 
 def generate_training_plan(dog, training_level, dominated_exercises, initial_reinforcement):
     """
@@ -147,7 +166,8 @@ def generate_training_plan(dog, training_level, dominated_exercises, initial_rei
                 training_plan=plan,
                 exercise=exercise,
                 reinforcement_type=reinforcement,
-                order_number=i + 1
+                order_number=i + 1,
+                dominated=False
             )
             active_count += 1
         elif is_dominated:
@@ -156,7 +176,8 @@ def generate_training_plan(dog, training_level, dominated_exercises, initial_rei
                 training_plan=plan,
                 exercise=exercise,
                 reinforcement_type=reinforcement,
-                order_number=i + 1
+                order_number=i + 1,
+                dominated=True
             )
 
     return plan

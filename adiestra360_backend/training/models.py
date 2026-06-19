@@ -50,6 +50,12 @@ class TrainingPlanExercises(models.Model):
     exercise = models.ForeignKey(Exercises, models.CASCADE)
     reinforcement_type = models.ForeignKey(ReinforcementTypes, models.CASCADE)
     order_number = models.IntegerField(blank=True, null=True)
+    # Marca los ejercicios que el quiz detectó como ya dominados por el perro:
+    # se confirman con menos esfuerzo (1 sesión exitosa) en vez de 3.
+    dominated = models.BooleanField(default=False)
+    # Los ejercicios de niveles ya superados se conservan en el plan como
+    # inactivos (no se eliminan ni se reemplazan).
+    active = models.BooleanField(default=True)
 
     class Meta:
         db_table = 'training_plan_exercises'

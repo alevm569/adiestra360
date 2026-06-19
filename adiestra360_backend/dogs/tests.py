@@ -180,3 +180,110 @@ class ListAndDetailDogTests(TestCase):
         }, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['name'], 'Luna Actualizada')
+
+    def test_update_dog_partial_preserves_other_fields(self):
+        response = self.client.put(f'/api/dogs/{self.dog_id}/update/', {
+            'breed': 'Pastor Alemán'
+        }, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['breed'], 'Pastor Alemán')
+        self.assertEqual(response.data['name'], 'Luna')  # se conserva
+
+    def test_update_dog_not_found(self):
+        fake_id = str(uuid.uuid4())
+        response = self.client.put(f'/api/dogs/{fake_id}/update/', {
+            'name': 'X'
+        }, format='json')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_list_dogs_unauthenticated(self):
+        self.client.credentials()
+        response = self.client.get('/api/dogs/')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_dog_detail_unauthenticated(self):
+        self.client.credentials()
+        response = self.client.get(f'/api/dogs/{self.dog_id}/')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_update_dog_unauthenticated(self):
+        self.client.credentials()
+        response = self.client.put(f'/api/dogs/{self.dog_id}/update/', {
+            'name': 'X'
+        }, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class CrossUserAccessTests(TestCase):
+    """Un usuario no puede ver ni modificar perros de otro usuario."""
+
+    def setUp(self):
+        self.client = APIClient()
+        create_base_catalog()
+
+        # Usuario dueño del perro
+        owner_resp = self.client.post('/api/auth/register/', {
+            'name': 'Dueño', 'email': 'owner@test.com', 'password': 'test1234'
+        }, format='json')
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {owner_resp.data['tokens']['access']}"
+        )
+        create_resp = self.client.post('/api/dogs/create/', {
+            'dog': {'name': 'Luna', 'breed': 'Cocker', 'energy_level': 'medio'},
+            'quiz_answers': [
+                {'exercise_related': 'siéntate', 'answer': 'Siempre'},
+                {'reinforcement_related': 'comida', 'answer': 'Mucho'},
+            ]
+        }, format='json')
+        self.dog_id = create_resp.data['dog']['id']
+
+        # Segundo usuario (intruso); el cliente queda autenticado como él
+        intruder_resp = self.client.post('/api/auth/register/', {
+            'name': 'Intruso', 'email': 'intruder@test.com', 'password': 'test1234'
+        }, format='json')
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {intruder_resp.data['tokens']['access']}"
+        )
+
+    def test_intruder_cannot_see_dog(self):
+        response = self.client.get(f'/api/dogs/{self.dog_id}/')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_intruder_cannot_update_dog(self):
+        response = self.client.put(f'/api/dogs/{self.dog_id}/update/', {
+            'name': 'Hackeado'
+        }, format='json')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_intruder_dog_not_in_list(self):
+        response = self.client.get('/api/dogs/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 0)
+
+
+class ExperienceLevelTests(TestCase):
+    """
+    Regresión #6: el nivel de experiencia se calcula promediando AMBAS
+    preguntas del quiz (10 y 11), no solo la primera.
+    """
+
+    def test_experience_is_averaged_between_both_questions(self):
+        from dogs.views import calculate_experience_level
+        answers = [
+            {'experience_related': 'experience_level', 'answer': 'Sí, tengo experiencia'},  # avanzado
+            {'experience_related': 'experience_level', 'answer': 'No lo conozco'},           # principiante
+        ]
+        # Promedio (avanzado + principiante) → intermedio
+        self.assertEqual(calculate_experience_level(answers), 'intermedio')
+
+    def test_experience_both_advanced(self):
+        from dogs.views import calculate_experience_level
+        answers = [
+            {'experience_related': 'experience_level', 'answer': 'Sí, tengo experiencia'},
+            {'experience_related': 'experience_level', 'answer': 'Sí, lo aplico'},
+        ]
+        self.assertEqual(calculate_experience_level(answers), 'avanzado')
+
+    def test_experience_no_answers_defaults_beginner(self):
+        from dogs.views import calculate_experience_level
+        self.assertEqual(calculate_experience_level([]), 'principiante')

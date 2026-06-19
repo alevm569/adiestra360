@@ -19,11 +19,25 @@ UNLOCK_SUCCESS_THRESHOLD = 0.80  # 80% de éxito mínimo
 UNLOCK_SESSION_COUNT = 3         # mínimo 3 sesiones para evaluar
 
 
-def check_exercise_mastered(dog_id, exercise_id):
+def check_exercise_mastered(dog_id, exercise_id, dominated=False):
     """
-    Verifica si un ejercicio está dominado:
-    últimas 3 sesiones con >= 80% de éxito.
+    Verifica si un ejercicio está dominado.
+
+    - Ejercicio normal: últimas 3 sesiones con >= 80% de éxito.
+    - Ejercicio marcado como dominado en el quiz: basta 1 sesión exitosa
+      para confirmarlo, porque el perro ya lo sabe y debería costarle poco.
+      Si la última sesión falla (le costó esfuerzo), se evalúa con la regla
+      normal: en realidad debe repasarlo.
     """
+    if dominated:
+        last_session = TrainingSessions.objects.filter(
+            dog_id=dog_id,
+            exercise_id=exercise_id
+        ).order_by('-session_date').first()
+        if last_session and last_session.success:
+            return True
+        # Falló o aún no hay sesión → se evalúa con la regla estándar.
+
     sessions = TrainingSessions.objects.filter(
         dog_id=dog_id,
         exercise_id=exercise_id
@@ -36,13 +50,29 @@ def check_exercise_mastered(dog_id, exercise_id):
     return (success_count / UNLOCK_SESSION_COUNT) >= UNLOCK_SUCCESS_THRESHOLD
 
 
+def get_level_number(level):
+    """
+    Extrae el número de un nivel a partir de su nombre (p.ej. 'Nivel 2' → 2).
+    Retorna None si no se puede determinar.
+    """
+    if not level:
+        return None
+    try:
+        return int(''.join(filter(str.isdigit, level.name)))
+    except (ValueError, TypeError):
+        return None
+
+
 def check_level_completed(dog_id, plan):
     """
-    Verifica si todos los ejercicios del nivel actual están dominados.
+    Verifica si todos los ejercicios ACTIVOS del nivel actual están dominados.
+    Los ejercicios de niveles anteriores (inactivos) no se evalúan.
     """
-    plan_exercises = TrainingPlanExercises.objects.filter(training_plan=plan)
+    plan_exercises = TrainingPlanExercises.objects.filter(
+        training_plan=plan, active=True
+    )
     for pe in plan_exercises:
-        if not check_exercise_mastered(dog_id, pe.exercise_id):
+        if not check_exercise_mastered(dog_id, pe.exercise_id, dominated=pe.dominated):
             return False
     return True
 
@@ -67,22 +97,28 @@ def unlock_next_exercise(dog, plan):
     if not next_exercise:
         return None
 
-    # Obtener el refuerzo actual del plan
-    current_reinforcement = TrainingPlanExercises.objects.filter(
-        training_plan=plan
-    ).first()
-
+    # Refuerzo: el de un ejercicio activo del plan, o cualquiera disponible.
+    current_reinforcement = (
+        TrainingPlanExercises.objects.filter(training_plan=plan, active=True).first()
+        or TrainingPlanExercises.objects.filter(training_plan=plan).first()
+    )
     reinforcement = current_reinforcement.reinforcement_type if current_reinforcement else \
         ReinforcementTypes.objects.first()
 
-    # Agregar al plan
-    order = TrainingPlanExercises.objects.filter(training_plan=plan).count() + 1
+    # Continuar la numeración desde el último order_number del plan.
+    last = TrainingPlanExercises.objects.filter(
+        training_plan=plan
+    ).order_by('-order_number').first()
+    last_order = last.order_number if last and last.order_number else 0
+
     TrainingPlanExercises.objects.create(
         id=str(uuid.uuid4()),
         training_plan=plan,
         exercise=next_exercise,
         reinforcement_type=reinforcement,
-        order_number=order
+        order_number=last_order + 1,
+        active=True,
+        dominated=False
     )
     return next_exercise
 
@@ -94,27 +130,46 @@ def upgrade_to_next_level(dog, plan):
     Retorna (upgraded: bool, new_level_name: str)
     """
     current_level = plan.current_level
-    next_level = TrainingLevels.objects.filter(
-        id__gt=current_level.id
-    ).order_by('id').first()
+    current_number = get_level_number(current_level)
+    if current_number is None:
+        return False, None
+
+    # El "siguiente nivel" se determina por el número del nombre (Nivel N+1),
+    # no por el id, que es un UUID sin orden semántico.
+    next_level = next(
+        (lvl for lvl in TrainingLevels.objects.all()
+         if get_level_number(lvl) == current_number + 1),
+        None
+    )
 
     if not next_level:
         return False, None
 
-    # Actualizar plan al nuevo nivel
-    plan.current_level = next_level
-    plan.save()
-
-    # Agregar primeros 2 ejercicios del nuevo nivel
-    new_exercises = Exercises.objects.filter(
-        level=next_level
-    ).order_by('difficulty')[:2]
-
+    # Refuerzo de referencia (tomado del plan actual, antes de inactivar).
     reinforcement = TrainingPlanExercises.objects.filter(
         training_plan=plan
     ).first()
     reinforcement_type = reinforcement.reinforcement_type if reinforcement else \
         ReinforcementTypes.objects.first()
+
+    # Continuar la numeración desde el último order_number existente.
+    last = TrainingPlanExercises.objects.filter(
+        training_plan=plan
+    ).order_by('-order_number').first()
+    last_order = last.order_number if last and last.order_number else 0
+
+    # Actualizar plan al nuevo nivel
+    plan.current_level = next_level
+    plan.save()
+
+    # Los ejercicios del nivel anterior se conservan pero quedan inactivos
+    # (no se eliminan ni se reemplazan).
+    TrainingPlanExercises.objects.filter(training_plan=plan).update(active=False)
+
+    # Agregar primeros 2 ejercicios del nuevo nivel como activos.
+    new_exercises = Exercises.objects.filter(
+        level=next_level
+    ).order_by('difficulty')[:2]
 
     for i, exercise in enumerate(new_exercises):
         TrainingPlanExercises.objects.create(
@@ -122,7 +177,9 @@ def upgrade_to_next_level(dog, plan):
             training_plan=plan,
             exercise=exercise,
             reinforcement_type=reinforcement_type,
-            order_number=i + 1
+            order_number=last_order + 1 + i,
+            active=True,
+            dominated=False
         )
 
     return True, next_level.name
@@ -199,8 +256,15 @@ def evaluate_progress(request, dog_id):
         'message': ''
     }
 
+    # Saber si el ejercicio evaluado fue marcado como dominado en el quiz
+    # (se confirma con menos esfuerzo).
+    evaluated_pe = TrainingPlanExercises.objects.filter(
+        training_plan=plan, exercise_id=exercise_id
+    ).first()
+    is_dominated = evaluated_pe.dominated if evaluated_pe else False
+
     # Verificar si el ejercicio fue dominado
-    if check_exercise_mastered(dog.id, exercise_id):
+    if check_exercise_mastered(dog.id, exercise_id, dominated=is_dominated):
         response_data['exercise_mastered'] = True
 
         # Verificar si completó todo el nivel

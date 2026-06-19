@@ -25,7 +25,7 @@ class TrainingPlanExerciseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TrainingPlanExercises
-        fields = ['id', 'exercise', 'reinforcement_type', 'order_number']
+        fields = ['id', 'exercise', 'reinforcement_type', 'order_number', 'dominated', 'active']
 
 class TrainingPlanSerializer(serializers.ModelSerializer):
     exercises = TrainingPlanExerciseSerializer(

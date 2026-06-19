@@ -26,22 +26,24 @@ def update_streak(user):
     today = timezone.now().date()
     last_updated = streak.updated_at.date() if streak.updated_at else None
 
-    if last_updated == today:
-        # Ya entrenó hoy, no cambia
+    # Si ya se contabilizó una sesión hoy, la racha no cambia.
+    # En la primera sesión la racha está en 0, así que debe inicializarse
+    # aunque la fila se haya creado hoy (en el registro del usuario).
+    if last_updated == today and streak.current_streak > 0:
         return streak
 
     if last_updated == today - timedelta(days=1):
-        # Entrenó ayer → incrementar
+        # Entrenó ayer → la racha continúa
         streak.current_streak += 1
     else:
-        # Rompió la racha → reset
+        # Primera sesión o racha rota → inicia en 1
         streak.current_streak = 1
 
     # Actualizar racha más larga
     if streak.current_streak > streak.longest_streak:
         streak.longest_streak = streak.current_streak
 
-    streak.updated_at = timezone.now()
+    # updated_at es auto_now: save() lo fija a "ahora" automáticamente.
     streak.save()
     return streak
 
@@ -106,6 +108,9 @@ def check_achievements(user, dog, sessions_count, streak):
                     user=user,
                     achievement=achievement
                 )
+                # Sumar la recompensa al XP total del usuario (en memoria;
+                # el caller persiste con un único user.save()).
+                user.total_xp += achievement.xp_reward or 0
                 new_achievements.append({
                     'name': achievement.name,
                     'description': achievement.description,
@@ -149,18 +154,18 @@ def create_session(request, dog_id):
     # Actualizar racha
     streak = update_streak(user)
 
-    # Calcular XP
+    # Calcular XP de la sesión y acumularlo en el total del usuario
     xp_earned = calculate_xp(success_rate, streak)
-
-    # Actualizar XP del usuario
-    user.experience_level = user.experience_level  # mantener nivel
-    user.save()
+    user.total_xp += xp_earned
 
     # Contar sesiones totales del perro
     sessions_count = TrainingSessions.objects.filter(dog=dog).count()
 
-    # Verificar logros
+    # Verificar logros (suma su XP a user.total_xp en memoria)
     new_achievements = check_achievements(user, dog, sessions_count, streak)
+
+    # Persistir el XP total (sesión + logros) en una sola escritura
+    user.save()
 
     # Calcular métricas rápidas de la sesión
     recent_sessions = TrainingSessions.objects.filter(
@@ -180,6 +185,7 @@ def create_session(request, dog_id):
     return Response({
         'session': TrainingSessionSerializer(session).data,
         'xp_earned': xp_earned,
+        'total_xp': user.total_xp,
         'streak': {
             'current': streak.current_streak,
             'longest': streak.longest_streak
