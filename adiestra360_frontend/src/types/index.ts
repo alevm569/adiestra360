@@ -79,3 +79,66 @@ export interface QuizQuestion {
   reinforcement_related?: string
   experience_related?: string
 }
+
+/** Respuesta a una pregunta del quiz (lo que espera el backend). */
+export interface QuizAnswer {
+  id: number
+  answer: string
+  exercise_related?: string | null
+  reinforcement_related?: string | null
+  experience_related?: string | null
+}
+
+/** Datos del perro que se capturan en el onboarding. */
+export interface DogDraft {
+  name: string
+  breed: string
+  age_months: number | null
+  weight: number | null
+  energy_level: "bajo" | "medio" | "alto"
+}
+
+/** Body de POST /dogs/create/ */
+export interface CreateDogPayload {
+  dog: DogDraft
+  quiz_answers: QuizAnswer[]
+}
+
+/** Respuesta de POST /dogs/create/ (crea perro + plan). */
+export interface CreateDogResponse {
+  dog: Dog
+  training_level: number
+  experience_level: string
+  initial_reinforcement: string
+  dominated_exercises: string[]
+  plan_id: string
+  message: string
+}
+
+// ---- Plan activo / dashboard (respuestas anidadas reales) ----
+export interface PlanExerciseItem {
+  id: string
+  exercise: {
+    id: string
+    name: string
+    description: string | null
+    difficulty: number | null
+    estimated_duration: number | null
+    level: string
+    level_name: string
+  }
+  reinforcement_type: { id: string; name: string }
+  order_number: number | null
+  dominated: boolean
+  active: boolean
+}
+
+export interface ActivePlan {
+  id: string
+  dog: string
+  current_level: string | null
+  current_level_name: string
+  active: boolean
+  created_at: string
+  exercises: PlanExerciseItem[]
+}
