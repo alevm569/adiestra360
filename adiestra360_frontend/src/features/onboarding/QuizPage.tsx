@@ -40,7 +40,6 @@ function buildAnswer(q: QuizQuestion, answer: string): QuizAnswer {
 export function QuizPage() {
   const navigate = useNavigate()
   const dog = useOnboarding((s) => s.dog)
-  const reset = useOnboarding((s) => s.reset)
   const setActiveDog = useDogStore((s) => s.setActiveDog)
 
   const { data: questions, isLoading, isError } = useQuiz()
@@ -96,8 +95,9 @@ export function QuizPage() {
       { dog: dog!, quiz_answers },
       {
         onSuccess: (data) => {
+          // No limpiamos el borrador aquí: nullear el perro dispararía el guard
+          // "sin perro" y rebotaría a /onboarding/dog antes de navegar al inicio.
           setActiveDog(data.dog.id)
-          reset()
           navigate("/", { replace: true })
         },
       }
