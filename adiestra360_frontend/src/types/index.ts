@@ -142,3 +142,51 @@ export interface ActivePlan {
   created_at: string
   exercises: PlanExerciseItem[]
 }
+
+export interface SessionStats {
+  total_sessions: number
+  success_rate: number
+  avg_response_time: number | null
+  last_session: string | null
+}
+
+export interface ExerciseProgress {
+  exercise_id: string
+  exercise_name: string
+  total_sessions: number
+  success_rate: number
+  mastered: boolean
+}
+
+export interface Achievement {
+  name: string
+  xp_reward: number
+  earned_at: string
+}
+
+export interface Gamification {
+  total_xp: number
+  user_level: string
+  streak: { current: number; longest: number }
+  recent_achievements: Achievement[]
+}
+
+/** Respuesta de GET /gamification/dashboard/<dog_id>/ */
+export interface DashboardResponse {
+  dog: {
+    id: string
+    name: string
+    breed: string | null
+    training_level: number | null
+    energy_level: string | null
+  }
+  plan: ActivePlan | null
+  stats: SessionStats
+  exercise_progress: ExerciseProgress[]
+  gamification: Gamification
+  active_recommendation: {
+    id: string
+    reason: string
+    recommended_strategy: { id: string; name: string }
+  } | null
+}
