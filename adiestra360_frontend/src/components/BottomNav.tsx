@@ -14,7 +14,7 @@ interface Tab {
 const TABS: Tab[] = [
   { key: "home", icon: "home", label: "Inicio", to: "/" },
   { key: "plan", icon: "checklist", label: "Plan" },
-  { key: "session", icon: "track_changes", label: "Sesión" },
+  { key: "session", icon: "track_changes", label: "Sesión", to: "/sesion" },
   { key: "profile", icon: "person", label: "Perfil" },
 ]
 

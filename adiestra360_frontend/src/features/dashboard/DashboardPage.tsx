@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom"
 import { cn } from "@/lib/utils"
+import { cap, reinforcementIcon } from "@/lib/exercise"
 import { Wordmark } from "@/components/Brandmark"
 import { Icon } from "@/components/Icon"
 import { Ring } from "@/components/Ring"
@@ -9,17 +10,6 @@ import { useAuth } from "@/stores/authStore"
 import { useDogStore } from "@/stores/dogStore"
 import { useDashboard } from "./api"
 import type { DashboardResponse, PlanExerciseItem } from "@/types"
-
-const cap = (s?: string | null) =>
-  s ? s.charAt(0).toUpperCase() + s.slice(1) : ""
-
-const REINFORCEMENT_ICON: Record<string, string> = {
-  pelota: "sports_baseball",
-  comida: "restaurant",
-  caricias: "front_hand",
-}
-const reinforcementIcon = (name?: string) =>
-  name ? REINFORCEMENT_ICON[name.toLowerCase()] ?? "redeem" : "redeem"
 
 export function DashboardPage() {
   const user = useAuth((s) => s.user)
@@ -188,11 +178,10 @@ function DashboardContent({ data }: { data: DashboardResponse }) {
       ) : (
         activeExercises.map((e) => {
           const done = isDone(e)
-          return (
-            <div
-              key={e.id}
-              className="mb-2.5 flex items-center gap-3 rounded-2xl border border-border bg-card p-3"
-            >
+          const rowClass =
+            "mb-2.5 flex items-center gap-3 rounded-2xl border border-border bg-card p-3"
+          const inner = (
+            <>
               <div
                 className={cn(
                   "grid size-9 flex-none place-items-center rounded-xl",
@@ -223,7 +212,17 @@ function DashboardContent({ data }: { data: DashboardResponse }) {
               >
                 {done ? "Listo" : "Seguir"}
               </span>
+            </>
+          )
+          // Los ejercicios pendientes llevan a la pantalla de sesión.
+          return done ? (
+            <div key={e.id} className={rowClass}>
+              {inner}
             </div>
+          ) : (
+            <Link key={e.id} to="/sesion" className={rowClass}>
+              {inner}
+            </Link>
           )
         })
       )}
