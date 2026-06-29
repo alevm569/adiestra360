@@ -6,10 +6,14 @@ import { Icon } from "@/components/Icon"
 import { Button } from "@/components/ui/button"
 import { useDogStore } from "@/stores/dogStore"
 import { useActivePlan } from "@/features/plan/api"
-import { useCreateSessions, type SessionInput } from "./api"
+import {
+  useTrainSession,
+  type Rating,
+  type TrainInput,
+  type ExerciseOutcome,
+  type TrainSummary,
+} from "./api"
 import type { PlanExerciseItem } from "@/types"
-
-type Rating = "dificil" | "bien" | "excelente"
 
 const RATINGS: { value: Rating; icon: string; label: string }[] = [
   { value: "dificil", icon: "sentiment_dissatisfied", label: "Difícil" },
@@ -21,14 +25,13 @@ export function SessionPage() {
   const navigate = useNavigate()
   const activeDogId = useDogStore((s) => s.activeDogId)
   const { data: plan, isLoading } = useActivePlan(activeDogId)
-  const createSessions = useCreateSessions(activeDogId)
+  const train = useTrainSession(activeDogId)
 
   const [ratings, setRatings] = useState<Record<string, Rating>>({})
   const [notes, setNotes] = useState("")
 
   if (!activeDogId) return <Navigate to="/" replace />
 
-  // Ejercicios a practicar hoy: activos y aún no dominados.
   const todo = (plan?.exercises ?? [])
     .filter((e) => e.active && !e.dominated)
     .sort((a, b) => (a.order_number ?? 0) - (b.order_number ?? 0))
@@ -36,67 +39,20 @@ export function SessionPage() {
   const ratedCount = Object.keys(ratings).length
 
   function save() {
-    const inputs: SessionInput[] = todo
+    const inputs: TrainInput[] = todo
       .filter((e) => ratings[e.id])
       .map((e) => ({
-        exercise: e.exercise.id,
-        reinforcement_type: e.reinforcement_type.id,
-        success: ratings[e.id] !== "dificil",
-        notes: notes.trim() || undefined,
+        exerciseId: e.exercise.id,
+        reinforcementTypeId: e.reinforcement_type.id,
+        exerciseName: cap(e.exercise.name),
+        rating: ratings[e.id],
       }))
     if (inputs.length === 0) return
-    createSessions.mutate(inputs)
+    train.mutate({ inputs, notes })
   }
 
-  // --- Pantalla de éxito ---
-  if (createSessions.isSuccess) {
-    const summary = createSessions.data
-    return (
-      <div className="grid min-h-safe place-items-center px-8 pb-safe pt-safe text-center">
-        <div>
-          <div className="mx-auto mb-5 grid size-24 place-items-center rounded-full bg-primary-soft text-primary-deep">
-            <Icon name="celebration" fill className="text-5xl" />
-          </div>
-          <h1 className="text-2xl font-bold">¡Sesión registrada!</h1>
-          <p className="mt-1 text-sm font-bold text-muted-foreground">
-            {summary.count} {summary.count === 1 ? "ejercicio" : "ejercicios"} entrenados
-          </p>
-
-          <div className="mx-auto mt-5 inline-flex items-center gap-2 rounded-full bg-amber-soft px-4 py-2 font-display text-lg font-extrabold text-amber-deep">
-            <Icon name="bolt" fill className="text-xl" />+{summary.xpEarned} XP
-          </div>
-
-          {summary.newAchievements.length > 0 && (
-            <div className="mt-5 flex flex-col gap-2">
-              {summary.newAchievements.map((a, i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3 text-left"
-                >
-                  <div className="grid size-10 flex-none place-items-center rounded-full bg-amber-soft text-amber-deep">
-                    <Icon name="trophy" fill className="text-xl" />
-                  </div>
-                  <div>
-                    <small className="block text-[10px] font-extrabold uppercase tracking-wider text-amber-deep">
-                      ¡Logro desbloqueado!
-                    </small>
-                    <b className="text-sm">{a.name}</b>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <Button
-            onClick={() => navigate("/", { replace: true })}
-            className="mt-7 h-12 w-full rounded-xl text-base font-extrabold"
-          >
-            Volver al inicio
-            <Icon name="arrow_forward" className="text-xl" />
-          </Button>
-        </div>
-      </div>
-    )
+  if (train.isSuccess) {
+    return <SessionSuccess data={train.data} onDone={() => navigate("/", { replace: true })} />
   }
 
   return (
@@ -151,17 +107,17 @@ export function SessionPage() {
           ))}
 
           <label className="mt-2 flex flex-col gap-2">
-            <span className="text-xs font-extrabold">Notas (opcional)</span>
+            <span className="text-xs font-extrabold">¿Algo que contar? (opcional)</span>
             <textarea
               value={notes}
               onChange={(ev) => setNotes(ev.target.value)}
               rows={2}
-              placeholder="Respondió mejor en el parque…"
+              placeholder="Se distrae con otros perros, responde mejor en casa…"
               className="resize-none rounded-xl border border-border bg-card p-3 text-sm font-medium outline-none focus-visible:border-primary focus-visible:ring-[3px] focus-visible:ring-primary-soft"
             />
           </label>
 
-          {createSessions.isError && (
+          {train.isError && (
             <p className="mt-3 text-center text-sm font-semibold text-destructive">
               No pudimos guardar la sesión. Inténtalo de nuevo.
             </p>
@@ -169,10 +125,10 @@ export function SessionPage() {
 
           <Button
             onClick={save}
-            disabled={ratedCount === 0 || createSessions.isPending}
+            disabled={ratedCount === 0 || train.isPending}
             className="my-4 h-12 rounded-xl text-base font-extrabold"
           >
-            {createSessions.isPending ? (
+            {train.isPending ? (
               "Guardando…"
             ) : (
               <>
@@ -230,6 +186,136 @@ function ExerciseRater({
           )
         })}
       </div>
+    </div>
+  )
+}
+
+// ---- Pantalla de éxito con feedback por ejercicio ----
+
+const TONE = {
+  done: "bg-primary-soft text-primary-deep",
+  progress: "bg-amber-soft text-amber-deep",
+  warn: "bg-coral-soft text-coral-deep",
+} as const
+
+function feedback(o: ExerciseOutcome) {
+  if (o.mastered) {
+    return {
+      tone: "done" as const,
+      icon: "check_circle",
+      title: `¡${o.exerciseName} dominado!`,
+      sub: o.leveledUp
+        ? `¡Subiste a ${o.newLevel ?? "nuevo nivel"}! Sigue practicando para perfeccionarlo.`
+        : "Sigue practicando para perfeccionarlo cada vez más.",
+    }
+  }
+  if (o.success) {
+    return {
+      tone: "progress" as const,
+      icon: "trending_up",
+      title: `¡Vas bien con ${o.exerciseName}!`,
+      sub: `Sigue practicando para dominarlo · ${o.successRate}% de éxito en ${o.totalSessions} ${
+        o.totalSessions === 1 ? "sesión" : "sesiones"
+      }.`,
+    }
+  }
+  return {
+    tone: "warn" as const,
+    icon: "replay",
+    title: `A repasar ${o.exerciseName}`,
+    sub: "Necesita más práctica. Prueba otro refuerzo o cuéntanos qué pasó para darte tips.",
+  }
+}
+
+function SessionSuccess({
+  data,
+  onDone,
+}: {
+  data: TrainSummary
+  onDone: () => void
+}) {
+  return (
+    <div className="flex min-h-safe flex-col overflow-y-auto px-5 pb-safe pt-safe">
+      <div className="mx-auto mt-6 grid size-20 place-items-center rounded-full bg-primary-soft text-primary-deep">
+        <Icon name="celebration" fill className="text-4xl" />
+      </div>
+      <h1 className="mt-4 text-center text-2xl font-bold">¡Sesión registrada!</h1>
+      <div className="mx-auto mt-3 inline-flex items-center gap-2 rounded-full bg-amber-soft px-4 py-2 font-display text-lg font-extrabold text-amber-deep">
+        <Icon name="bolt" fill className="text-xl" />+{data.xpEarned} XP
+      </div>
+
+      {/* Feedback por ejercicio */}
+      <div className="mt-6 flex flex-col gap-2.5">
+        {data.outcomes.map((o, i) => {
+          const f = feedback(o)
+          return (
+            <div
+              key={i}
+              className="flex items-start gap-3 rounded-2xl border border-border bg-card p-3.5 text-left"
+            >
+              <div className={cn("grid size-10 flex-none place-items-center rounded-xl", TONE[f.tone])}>
+                <Icon name={f.icon} fill className="text-xl" />
+              </div>
+              <div>
+                <b className="block text-sm">{f.title}</b>
+                <small className="text-xs font-semibold text-muted-foreground">{f.sub}</small>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Recomendación de refuerzo de la IA */}
+      {data.recommendation && (
+        <div className="mt-3 rounded-2xl border border-coral-soft bg-coral-soft/50 p-4 text-left">
+          <div className="mb-1 flex items-center gap-2 font-display text-sm font-extrabold text-coral-deep">
+            <Icon name="lightbulb" fill className="text-lg" />
+            Sugerencia de la IA
+          </div>
+          <p className="text-sm font-semibold">
+            Prueba el refuerzo <b>{data.recommendation.recommendedName}</b>
+            {data.recommendation.previousName && (
+              <> en vez de {data.recommendation.previousName}</>
+            )}
+            .
+          </p>
+          {data.recommendation.reason && (
+            <p className="mt-1 text-xs font-semibold text-muted-foreground">
+              {data.recommendation.reason}
+            </p>
+          )}
+          <p className="mt-1.5 text-xs font-extrabold text-coral-deep">
+            Aplícalo desde la pantalla de inicio.
+          </p>
+        </div>
+      )}
+
+      {/* Logros */}
+      {data.newAchievements.length > 0 && (
+        <div className="mt-3 flex flex-col gap-2">
+          {data.newAchievements.map((a, i) => (
+            <div
+              key={i}
+              className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3 text-left"
+            >
+              <div className="grid size-10 flex-none place-items-center rounded-full bg-amber-soft text-amber-deep">
+                <Icon name="trophy" fill className="text-xl" />
+              </div>
+              <div>
+                <small className="block text-[10px] font-extrabold uppercase tracking-wider text-amber-deep">
+                  ¡Logro desbloqueado!
+                </small>
+                <b className="text-sm">{a.name}</b>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <Button onClick={onDone} className="mb-4 mt-6 h-12 rounded-xl text-base font-extrabold">
+        Volver al inicio
+        <Icon name="arrow_forward" className="text-xl" />
+      </Button>
     </div>
   )
 }

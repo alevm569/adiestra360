@@ -9,7 +9,14 @@ import { Button } from "@/components/ui/button"
 import { useAuth } from "@/stores/authStore"
 import { useDogStore } from "@/stores/dogStore"
 import { useDashboard } from "./api"
-import type { DashboardResponse, PlanExerciseItem } from "@/types"
+import { useApplyRecommendation } from "@/features/recommendations/api"
+import type {
+  ActivePlan,
+  ActiveRecommendation,
+  DashboardResponse,
+  ExerciseProgress,
+  PlanExerciseItem,
+} from "@/types"
 
 export function DashboardPage() {
   const user = useAuth((s) => s.user)
@@ -17,7 +24,6 @@ export function DashboardPage() {
   const activeDogId = useDogStore((s) => s.activeDogId)
   const { data, isLoading, isError, refetch } = useDashboard(activeDogId)
 
-  // Aún no hay perro: invitar al onboarding.
   if (!activeDogId) {
     return (
       <div className="min-h-safe px-5 pt-safe pb-safe">
@@ -69,7 +75,7 @@ export function DashboardPage() {
           </div>
         )}
 
-        {data && <DashboardContent data={data} />}
+        {data && <DashboardContent data={data} dogId={activeDogId} />}
       </div>
 
       <BottomNav active="home" />
@@ -88,20 +94,60 @@ function TopBar({ onLogout }: { onLogout: () => void }) {
   )
 }
 
-function DashboardContent({ data }: { data: DashboardResponse }) {
+/** Estado de un ejercicio según su progreso real en las sesiones. */
+function exerciseState(e: PlanExerciseItem, progress?: ExerciseProgress) {
+  const mastered = e.dominated || progress?.mastered
+  if (mastered)
+    return {
+      label: "Superado",
+      tone: "bg-primary-soft text-primary-deep",
+      icon: "check_circle",
+      fill: true,
+      done: true,
+    }
+  if (!progress || progress.total_sessions === 0)
+    return {
+      label: "Empezar",
+      tone: "bg-amber-soft text-amber-deep",
+      icon: reinforcementIcon(e.reinforcement_type?.name),
+      fill: false,
+      done: false,
+    }
+  if (progress.success_rate >= 50)
+    return {
+      label: "Continuar",
+      tone: "bg-amber-soft text-amber-deep",
+      icon: "trending_up",
+      fill: false,
+      done: false,
+    }
+  return {
+    label: "Repasar",
+    tone: "bg-coral-soft text-coral-deep",
+    icon: "replay",
+    fill: false,
+    done: false,
+  }
+}
+
+function DashboardContent({
+  data,
+  dogId,
+}: {
+  data: DashboardResponse
+  dogId: string
+}) {
   const { dog, plan, exercise_progress, gamification } = data
+
+  const progressById = new Map(exercise_progress.map((p) => [p.exercise_id, p]))
 
   const activeExercises = (plan?.exercises ?? [])
     .filter((e) => e.active)
     .sort((a, b) => (a.order_number ?? 0) - (b.order_number ?? 0))
 
-  const masteredIds = new Set(
-    exercise_progress.filter((p) => p.mastered).map((p) => p.exercise_id)
-  )
-  const isDone = (e: PlanExerciseItem) =>
-    e.dominated || masteredIds.has(e.exercise.id)
-
-  const doneCount = activeExercises.filter(isDone).length
+  const doneCount = activeExercises.filter(
+    (e) => e.dominated || progressById.get(e.exercise.id)?.mastered
+  ).length
   const percent = activeExercises.length
     ? Math.round((doneCount / activeExercises.length) * 100)
     : 0
@@ -117,9 +163,7 @@ function DashboardContent({ data }: { data: DashboardResponse }) {
         <Ring percent={percent} size={76}>
           <div>
             <b className="block font-display text-lg leading-none">Nv {level}</b>
-            <small className="text-[9px] font-extrabold text-muted-foreground">
-              {percent}%
-            </small>
+            <small className="text-[9px] font-extrabold text-muted-foreground">{percent}%</small>
           </div>
         </Ring>
         <div className="min-w-0 flex-1">
@@ -141,13 +185,13 @@ function DashboardContent({ data }: { data: DashboardResponse }) {
             />
           </div>
           <p className="mt-1.5 text-[10px] font-extrabold text-muted-foreground">
-            {doneCount}/{activeExercises.length} dominados · {gamification.total_xp} XP
+            {doneCount}/{activeExercises.length} superados · {gamification.total_xp} XP
           </p>
         </div>
       </div>
 
       {/* Racha */}
-      <div className="mb-5 flex items-center gap-3 rounded-2xl bg-linear-to-br from-amber-soft to-amber-soft p-3 px-4">
+      <div className="mb-4 flex items-center gap-3 rounded-2xl bg-amber-soft p-3 px-4">
         <div className="grid size-10 place-items-center rounded-xl bg-card/60 text-coral">
           <Icon name="local_fire_department" fill className="text-2xl" />
         </div>
@@ -160,6 +204,11 @@ function DashboardContent({ data }: { data: DashboardResponse }) {
           </span>
         </div>
       </div>
+
+      {/* Recomendación de la IA */}
+      {data.active_recommendation && plan && (
+        <RecommendationCard rec={data.active_recommendation} plan={plan} dogId={dogId} />
+      )}
 
       {/* Ejercicios de hoy */}
       <div className="mb-2.5 flex items-center justify-between">
@@ -177,24 +226,13 @@ function DashboardContent({ data }: { data: DashboardResponse }) {
         </p>
       ) : (
         activeExercises.map((e) => {
-          const done = isDone(e)
+          const st = exerciseState(e, progressById.get(e.exercise.id))
           const rowClass =
             "mb-2.5 flex items-center gap-3 rounded-2xl border border-border bg-card p-3"
           const inner = (
             <>
-              <div
-                className={cn(
-                  "grid size-9 flex-none place-items-center rounded-xl",
-                  done
-                    ? "bg-primary-soft text-primary-deep"
-                    : "bg-amber-soft text-amber-deep"
-                )}
-              >
-                <Icon
-                  name={done ? "check_circle" : reinforcementIcon(e.reinforcement_type?.name)}
-                  fill={done}
-                  className="text-xl"
-                />
+              <div className={cn("grid size-9 flex-none place-items-center rounded-xl", st.tone)}>
+                <Icon name={st.icon} fill={st.fill} className="text-xl" />
               </div>
               <div className="min-w-0 flex-1">
                 <b className="block text-sm">{cap(e.exercise.name)}</b>
@@ -202,20 +240,13 @@ function DashboardContent({ data }: { data: DashboardResponse }) {
                   Refuerzo: {e.reinforcement_type?.name ?? "—"}
                 </small>
               </div>
-              <span
-                className={cn(
-                  "rounded-full px-2.5 py-1 text-[10px] font-extrabold",
-                  done
-                    ? "bg-primary-soft text-primary-deep"
-                    : "bg-amber text-amber-deep"
-                )}
-              >
-                {done ? "Listo" : "Seguir"}
+              <span className={cn("rounded-full px-2.5 py-1 text-[10px] font-extrabold", st.tone)}>
+                {st.label}
               </span>
             </>
           )
-          // Los ejercicios pendientes llevan a la pantalla de sesión.
-          return done ? (
+          // Los superados no llevan a sesión; el resto sí.
+          return st.done ? (
             <div key={e.id} className={rowClass}>
               {inner}
             </div>
@@ -227,7 +258,7 @@ function DashboardContent({ data }: { data: DashboardResponse }) {
         })
       )}
 
-      {/* Logros recientes */}
+      {/* Logros */}
       <div className="mb-2.5 mt-5 text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">
         Logros recientes
       </div>
@@ -238,10 +269,7 @@ function DashboardContent({ data }: { data: DashboardResponse }) {
       ) : (
         <div className="grid grid-cols-3 gap-2.5">
           {achievements.map((a, i) => (
-            <div
-              key={i}
-              className="rounded-2xl border border-border bg-card p-3 text-center"
-            >
+            <div key={i} className="rounded-2xl border border-border bg-card p-3 text-center">
               <div className="mx-auto mb-1.5 grid size-10 place-items-center rounded-full bg-amber-soft text-amber-deep">
                 <Icon name="trophy" fill className="text-xl" />
               </div>
@@ -252,6 +280,46 @@ function DashboardContent({ data }: { data: DashboardResponse }) {
           ))}
         </div>
       )}
+    </div>
+  )
+}
+
+function RecommendationCard({
+  rec,
+  plan,
+  dogId,
+}: {
+  rec: ActiveRecommendation
+  plan: ActivePlan
+  dogId: string
+}) {
+  const apply = useApplyRecommendation(dogId)
+  return (
+    <div className="mb-4 rounded-2xl border border-coral-soft bg-coral-soft/50 p-4">
+      <div className="mb-1 flex items-center gap-2 font-display text-sm font-extrabold text-coral-deep">
+        <Icon name="lightbulb" fill className="text-lg" />
+        La IA tiene una sugerencia
+      </div>
+      <p className="text-sm font-semibold">
+        Prueba el refuerzo <b>{rec.recommended_strategy_name}</b> en vez de{" "}
+        {rec.previous_strategy_name}.
+      </p>
+      {rec.reason && (
+        <p className="mt-1 text-xs font-semibold text-muted-foreground">{rec.reason}</p>
+      )}
+      <Button
+        onClick={() =>
+          apply.mutate({
+            plan,
+            prevStrategyId: rec.previous_strategy,
+            newStrategyId: rec.recommended_strategy,
+          })
+        }
+        disabled={apply.isPending}
+        className="mt-3 h-10 w-full rounded-xl bg-linear-to-br from-coral to-coral-deep text-sm font-extrabold"
+      >
+        {apply.isPending ? "Aplicando…" : `Cambiar a ${rec.recommended_strategy_name}`}
+      </Button>
     </div>
   )
 }

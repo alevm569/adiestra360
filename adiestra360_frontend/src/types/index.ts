@@ -184,9 +184,17 @@ export interface DashboardResponse {
   stats: SessionStats
   exercise_progress: ExerciseProgress[]
   gamification: Gamification
-  active_recommendation: {
-    id: string
-    reason: string
-    recommended_strategy: { id: string; name: string }
-  } | null
+  active_recommendation: ActiveRecommendation | null
+}
+
+/** Recomendación de la IA para cambiar el refuerzo (cuando el perro va < 50%). */
+export interface ActiveRecommendation {
+  id: string
+  dog: string
+  previous_strategy: string
+  previous_strategy_name: string
+  recommended_strategy: string
+  recommended_strategy_name: string
+  reason: string
+  created_at: string
 }
