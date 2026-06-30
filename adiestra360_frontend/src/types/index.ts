@@ -187,6 +187,36 @@ export interface DashboardResponse {
   active_recommendation: ActiveRecommendation | null
 }
 
+// ---- Perfil / gamificación ----
+export interface UserStats {
+  total_xp: number
+  user_level: string
+  next_level_xp: number | null
+  xp_to_next_level: number
+  streak: { current: number; longest: number }
+  achievements_earned: number
+}
+
+export interface AchievementDetail {
+  id: string
+  name: string
+  description: string | null
+  xp_reward: number | null
+}
+
+export interface EarnedAchievement {
+  id: string
+  achievement: AchievementDetail
+  earned_at: string
+}
+
+export interface UserAchievementsResponse {
+  earned: EarnedAchievement[]
+  pending: AchievementDetail[]
+  total_earned: number
+  total_available: number
+}
+
 /** Recomendación de la IA para cambiar el refuerzo (cuando el perro va < 50%). */
 export interface ActiveRecommendation {
   id: string

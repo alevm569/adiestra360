@@ -13,9 +13,9 @@ interface Tab {
 
 const TABS: Tab[] = [
   { key: "home", icon: "home", label: "Inicio", to: "/" },
-  { key: "plan", icon: "checklist", label: "Plan" },
+  { key: "plan", icon: "checklist", label: "Plan", to: "/plan" },
   { key: "session", icon: "track_changes", label: "Sesión", to: "/sesion" },
-  { key: "profile", icon: "person", label: "Perfil" },
+  { key: "profile", icon: "person", label: "Perfil", to: "/perfil" },
 ]
 
 /** Barra de navegación inferior. Las pestañas sin ruta aún están inactivas. */
