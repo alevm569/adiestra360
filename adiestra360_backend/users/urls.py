@@ -6,6 +6,7 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('login/', views.login, name='login'),
     path('profile/', views.profile, name='profile'),
+    path('profile/update/', views.update_profile, name='update_profile'),
     path('quiz/', views.quiz_questions, name='quiz'),
     # Renueva el access token con el refresh token (usado por el front).
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),

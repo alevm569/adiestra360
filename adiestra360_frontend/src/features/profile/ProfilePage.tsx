@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom"
 import { cn } from "@/lib/utils"
 import { Icon } from "@/components/Icon"
 import { BottomNav } from "@/components/BottomNav"
@@ -74,8 +75,8 @@ export function ProfilePage() {
 
         {/* Menú */}
         <div className="mt-6 mb-4">
-          <MenuItem icon="pets" label="Mis perros" />
-          <MenuItem icon="edit" label="Editar perfil" />
+          <MenuItem icon="pets" label="Mis perros" to="/perros" />
+          <MenuItem icon="edit" label="Editar perfil" to="/perfil/editar" />
           <MenuItem icon="logout" label="Cerrar sesión" danger onClick={logout} />
         </div>
       </div>
@@ -161,20 +162,17 @@ function MenuItem({
   icon,
   label,
   danger,
+  to,
   onClick,
 }: {
   icon: string
   label: string
   danger?: boolean
+  to?: string
   onClick?: () => void
 }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={!onClick}
-      className="flex w-full items-center gap-3 border-b border-border py-3.5 text-left text-sm font-bold disabled:cursor-default"
-    >
+  const inner = (
+    <>
       <span
         className={cn(
           "grid size-9 flex-none place-items-center rounded-xl",
@@ -185,6 +183,21 @@ function MenuItem({
       </span>
       {label}
       <Icon name="chevron_right" className="ml-auto text-xl text-muted-foreground" />
+    </>
+  )
+  const className =
+    "flex w-full items-center gap-3 border-b border-border py-3.5 text-left text-sm font-bold"
+
+  if (to) {
+    return (
+      <Link to={to} className={className}>
+        {inner}
+      </Link>
+    )
+  }
+  return (
+    <button type="button" onClick={onClick} className={className}>
+      {inner}
     </button>
   )
 }

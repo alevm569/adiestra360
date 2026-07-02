@@ -78,6 +78,24 @@ def profile(request):
     except Users.DoesNotExist:
         return Response({'error': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
+@api_view(['PUT', 'PATCH'])
+@permission_classes([IsAuthenticated])
+def update_profile(request):
+    """
+    Actualiza los datos editables del usuario (por ahora, el nombre).
+    """
+    user_id = request.auth.payload.get('user_id')
+    try:
+        user = Users.objects.get(id=user_id)
+    except Users.DoesNotExist:
+        return Response({'error': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+    name = request.data.get('name')
+    if name is not None and name.strip():
+        user.name = name.strip()
+    user.save()
+    return Response(UserSerializer(user).data)
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def quiz_questions(request):

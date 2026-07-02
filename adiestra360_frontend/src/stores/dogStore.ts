@@ -1,5 +1,6 @@
 import { create } from "zustand"
-import { persist } from "zustand/middleware"
+import { createJSONStorage, persist } from "zustand/middleware"
+import { capacitorStorage } from "@/lib/capacitorStorage"
 
 /**
  * Perro activo: qué perro se muestra en el dashboard/plan.
@@ -18,6 +19,9 @@ export const useDogStore = create<DogState>()(
       setActiveDog: (id) => set({ activeDogId: id }),
       clearActiveDog: () => set({ activeDogId: null }),
     }),
-    { name: "adiestra-active-dog" }
+    {
+      name: "adiestra-active-dog",
+      storage: createJSONStorage(() => capacitorStorage),
+    }
   )
 )

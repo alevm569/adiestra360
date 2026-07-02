@@ -1,5 +1,6 @@
 import { create } from "zustand"
-import { persist } from "zustand/middleware"
+import { createJSONStorage, persist } from "zustand/middleware"
+import { capacitorStorage } from "@/lib/capacitorStorage"
 import type { AuthTokens, User } from "@/types"
 
 interface AuthState {
@@ -9,6 +10,7 @@ interface AuthState {
   isAuthenticated: boolean
   setAuth: (tokens: AuthTokens, user: User) => void
   setAccess: (access: string) => void
+  setUser: (user: User) => void
   logout: () => void
 }
 
@@ -27,6 +29,7 @@ export const useAuth = create<AuthState>()(
           isAuthenticated: true,
         }),
       setAccess: (access) => set({ access }),
+      setUser: (user) => set({ user }),
       logout: () =>
         set({
           access: null,
@@ -37,7 +40,7 @@ export const useAuth = create<AuthState>()(
     }),
     {
       name: "adiestra-auth",
-      // Solo persistimos lo necesario en localStorage.
+      storage: createJSONStorage(() => capacitorStorage),
       partialize: (s) => ({
         access: s.access,
         refresh: s.refresh,
