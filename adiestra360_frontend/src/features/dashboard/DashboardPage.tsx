@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom"
+import { useEffect } from "react"
+import { Link, useNavigate } from "react-router-dom"
 import { cn } from "@/lib/utils"
 import { cap, reinforcementIcon } from "@/lib/exercise"
 import { Wordmark } from "@/components/Brandmark"
@@ -8,6 +9,7 @@ import { BottomNav } from "@/components/BottomNav"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/stores/authStore"
 import { useDogStore } from "@/stores/dogStore"
+import { useDogs } from "@/features/dogs/api"
 import { useDashboard } from "./api"
 import { useApplyRecommendation } from "@/features/recommendations/api"
 import type {
@@ -24,27 +26,8 @@ export function DashboardPage() {
   const activeDogId = useDogStore((s) => s.activeDogId)
   const { data, isLoading, isError, refetch } = useDashboard(activeDogId)
 
-  if (!activeDogId) {
-    return (
-      <div className="min-h-safe px-5 pt-safe pb-safe">
-        <TopBar onLogout={logout} />
-        <div className="mt-8 rounded-2xl border border-border bg-card p-6 text-center shadow-sm">
-          <div className="mx-auto mb-3 flex size-14 items-center justify-center rounded-2xl bg-coral-soft text-coral-deep">
-            <Icon name="pets" fill className="text-3xl" />
-          </div>
-          <p className="mb-4 text-sm font-semibold text-muted-foreground">
-            Aún no registras a tu perro. Crea su perfil y la IA armará su plan.
-          </p>
-          <Button asChild className="h-12 w-full rounded-xl text-base font-extrabold">
-            <Link to="/onboarding/dog">
-              Crear perfil de mi perro
-              <Icon name="arrow_forward" className="text-xl" />
-            </Link>
-          </Button>
-        </div>
-      </div>
-    )
-  }
+  // Sin perro activo local: resolver contra el backend (0 / 1 / varios).
+  if (!activeDogId) return <DogResolver onLogout={logout} />
 
   return (
     <div className="flex h-dvh flex-col">
@@ -90,6 +73,62 @@ function TopBar({ onLogout }: { onLogout: () => void }) {
       <Button variant="ghost" size="icon" onClick={onLogout} aria-label="Cerrar sesión">
         <Icon name="logout" className="text-xl" />
       </Button>
+    </div>
+  )
+}
+
+/**
+ * Cuando no hay perro activo local (p. ej. login en otro dispositivo),
+ * resuelve contra el backend:
+ *  - 0 perros  → invita a crear el perfil
+ *  - 1 perro   → lo selecciona y muestra el dashboard
+ *  - 2+ perros → lleva al listado para elegir con cuál empezar
+ */
+function DogResolver({ onLogout }: { onLogout: () => void }) {
+  const navigate = useNavigate()
+  const setActiveDog = useDogStore((s) => s.setActiveDog)
+  const { data: dogs, isLoading, isError } = useDogs()
+
+  useEffect(() => {
+    if (!dogs) return
+    if (dogs.length === 1) setActiveDog(dogs[0].id)
+    else if (dogs.length > 1) navigate("/perros", { replace: true })
+  }, [dogs, navigate, setActiveDog])
+
+  const showSpinner = isLoading || (dogs && dogs.length >= 1)
+
+  return (
+    <div className="min-h-safe px-5 pt-safe pb-safe">
+      <TopBar onLogout={onLogout} />
+
+      {showSpinner && (
+        <div className="grid place-items-center py-20 text-muted-foreground">
+          <Icon name="progress_activity" className="animate-spin text-3xl" />
+        </div>
+      )}
+
+      {isError && (
+        <p className="mt-8 rounded-2xl border border-border bg-card p-6 text-center text-sm font-semibold text-destructive">
+          No pudimos cargar tus perros. Revisa tu conexión.
+        </p>
+      )}
+
+      {dogs && dogs.length === 0 && (
+        <div className="mt-8 rounded-2xl border border-border bg-card p-6 text-center shadow-sm">
+          <div className="mx-auto mb-3 flex size-14 items-center justify-center rounded-2xl bg-coral-soft text-coral-deep">
+            <Icon name="pets" fill className="text-3xl" />
+          </div>
+          <p className="mb-4 text-sm font-semibold text-muted-foreground">
+            Aún no registras a tu perro. Crea su perfil y la IA armará su plan.
+          </p>
+          <Button asChild className="h-12 w-full rounded-xl text-base font-extrabold">
+            <Link to="/onboarding/dog">
+              Crear perfil de mi perro
+              <Icon name="arrow_forward" className="text-xl" />
+            </Link>
+          </Button>
+        </div>
+      )}
     </div>
   )
 }
