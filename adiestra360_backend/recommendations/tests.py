@@ -100,6 +100,33 @@ class AnalyzeAndRecommendTests(TestCase):
         )
         self.assertTrue(AiRecommendations.objects.filter(dog=self.dog).exists())
 
+    def test_analyze_recommends_untested_reinforcement_when_current_fails(self):
+        # Un solo refuerzo probado (comida) que falla y sin alternativa con
+        # datos: debe sugerir el siguiente refuerzo NO probado según el orden
+        # del perro (aquí, respaldo por energía 'medio' → caricias).
+        create_plan(self.dog, self.catalog['levels']['lvl1'], [(self.ex, self.comida)])
+        for _ in range(3):
+            create_session(self.dog, self.ex, self.comida, success=False)
+        response = self.client.post(f'/api/recommendations/{self.dog.id}/analyze/', {}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIsNotNone(response.data['recommendation'])
+        self.assertEqual(
+            response.data['recommendation']['recommended_strategy_name'], 'Caricias'
+        )
+
+    def test_analyze_follows_dog_survey_ranking(self):
+        # Con ranking de encuesta guardado, sugiere el siguiente de ESE orden.
+        self.dog.reinforcement_priority = 'comida,pelota,caricias'
+        self.dog.save(update_fields=['reinforcement_priority'])
+        create_plan(self.dog, self.catalog['levels']['lvl1'], [(self.ex, self.comida)])
+        for _ in range(3):
+            create_session(self.dog, self.ex, self.comida, success=False)
+        response = self.client.post(f'/api/recommendations/{self.dog.id}/analyze/', {}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(
+            response.data['recommendation']['recommended_strategy_name'], 'Pelota'
+        )
+
     def test_analyze_acceptable_performance_no_recommendation(self):
         create_plan(self.dog, self.catalog['levels']['lvl1'], [(self.ex, self.comida)])
         for _ in range(3):

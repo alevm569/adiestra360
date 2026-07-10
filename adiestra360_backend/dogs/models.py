@@ -11,6 +11,9 @@ class Dogs(models.Model):
     weight = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     energy_level = models.CharField(max_length=20, blank=True, null=True)
     training_level = models.IntegerField(blank=True, null=True)
+    # Ranking de refuerzos según la encuesta (coma-separado, del mejor al peor).
+    # Se usa para sugerir el siguiente refuerzo cuando el actual no funciona.
+    reinforcement_priority = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

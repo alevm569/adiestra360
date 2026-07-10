@@ -71,32 +71,39 @@ def calculate_initial_level(quiz_answers, energy_level):
     training_level = 2 if len(dominated) == len(NIVEL1_EJERCICIOS) else 1
     return training_level, dominated
 
-def calculate_initial_reinforcement(quiz_answers, energy_level):
-    """
-    Determina el refuerzo inicial según energía y respuestas del quiz.
-    """
-    # Prioridad base por energía
-    priority = {
-        'alto':  ['pelota', 'juguete', 'caricias', 'comida', 'clicker'],
-        'medio': ['comida', 'caricias', 'pelota', 'clicker', 'juguete'],
-        'bajo':  ['caricias', 'comida', 'clicker', 'pelota', 'juguete'],
-    }.get(energy_level, ['comida', 'caricias', 'pelota', 'clicker', 'juguete'])
+# Prioridad base de refuerzos según la energía del perro (parte de la encuesta).
+ENERGY_REINFORCEMENT_PRIORITY = {
+    'alto':  ['pelota', 'juguete', 'caricias', 'comida', 'clicker'],
+    'medio': ['comida', 'caricias', 'pelota', 'clicker', 'juguete'],
+    'bajo':  ['caricias', 'comida', 'clicker', 'pelota', 'juguete'],
+}
 
-    # Ajustar según respuestas del quiz de refuerzo
+def calculate_reinforcement_priority(quiz_answers, energy_level):
+    """
+    Ranking COMPLETO de refuerzos para el perro, según su energía y las
+    respuestas del quiz. El primero es el refuerzo inicial; el resto marca
+    el orden en que conviene probar alternativas si el actual no funciona.
+    """
+    priority = list(ENERGY_REINFORCEMENT_PRIORITY.get(
+        energy_level, ['comida', 'caricias', 'pelota', 'clicker', 'juguete']
+    ))
+
+    # Ajustar según respuestas del quiz de refuerzo (Mucho/Algo/Poco/Nada)
     scores = {}
     for a in quiz_answers:
         if a.get('reinforcement_related'):
             scores[a['reinforcement_related']] = REINFORCEMENT_MAP.get(a['answer'], 0)
 
-    # Si algún refuerzo tiene score alto, sube en la prioridad
     if scores:
-        priority = sorted(
-            priority,
-            key=lambda r: scores.get(r, 0),
-            reverse=True
-        )
+        priority = sorted(priority, key=lambda r: scores.get(r, 0), reverse=True)
 
-    return priority[0]  # refuerzo principal
+    return priority
+
+def calculate_initial_reinforcement(quiz_answers, energy_level):
+    """
+    Refuerzo inicial: el primero del ranking de la encuesta.
+    """
+    return calculate_reinforcement_priority(quiz_answers, energy_level)[0]
 
 def calculate_experience_level(quiz_answers):
     """
@@ -225,6 +232,13 @@ def create_dog_profile(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     dog = serializer.save()
+
+    # Guardar el ranking de refuerzos de la encuesta para futuras
+    # recomendaciones (probar el siguiente mejor si el actual falla).
+    dog.reinforcement_priority = ",".join(
+        calculate_reinforcement_priority(quiz_answers, energy_level)
+    )
+    dog.save(update_fields=['reinforcement_priority'])
 
     # Generar plan
     plan = generate_training_plan(dog, training_level, dominated, initial_reinforcement)

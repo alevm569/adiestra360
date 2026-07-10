@@ -35,6 +35,34 @@ CATEGORY_REINFORCEMENT_PRIORITY = {
     'disciplina':  ['comida', 'juguete', 'caricias'],  # varía según perfil
 }
 
+# Orden general de preferencia cuando hay que sugerir un refuerzo AÚN NO
+# probado y el perro no tiene ranking de encuesta guardado (respaldo final).
+GLOBAL_REINFORCEMENT_PRIORITY = ['comida', 'pelota', 'juguete', 'clicker', 'caricias']
+
+# Respaldo por energía (para perros creados antes de guardar el ranking).
+ENERGY_REINFORCEMENT_PRIORITY = {
+    'alto':  ['pelota', 'juguete', 'caricias', 'comida', 'clicker'],
+    'medio': ['comida', 'caricias', 'pelota', 'clicker', 'juguete'],
+    'bajo':  ['caricias', 'comida', 'clicker', 'pelota', 'juguete'],
+}
+
+
+def get_reinforcement_order(dog):
+    """
+    Orden en que probar refuerzos para este perro, según SU encuesta:
+    1) el ranking guardado en el perro (reinforcement_priority),
+    2) si no existe, el orden base por su energía,
+    3) como último respaldo, el orden global.
+    """
+    stored = getattr(dog, 'reinforcement_priority', None)
+    if stored:
+        order = [p.strip() for p in stored.split(',') if p.strip()]
+        if order:
+            return order
+    return ENERGY_REINFORCEMENT_PRIORITY.get(
+        dog.energy_level, GLOBAL_REINFORCEMENT_PRIORITY
+    )
+
 
 def get_exercise_category(exercise_name, level_number):
     """
@@ -184,11 +212,14 @@ def should_analyze(dog_id):
     return False, 'El rendimiento actual es aceptable.'
 
 
-def find_best_reinforcement(stats, current_reinforcement_id, category, dog_energy_level):
+def find_best_reinforcement(stats, current_reinforcement_id, category,
+                            dog_energy_level, fallback_priority=None):
     """
     Encuentra el mejor refuerzo alternativo según:
     - Nivel 1 (global): cualquier refuerzo con mejor score
     - Nivel 2: respeta prioridades por categoría y energía del perro
+    Si ninguno YA PROBADO supera al actual, sugiere el mejor NO probado
+    según fallback_priority (el ranking de la encuesta del perro).
     """
     current_stats = stats.get(str(current_reinforcement_id))
     current_score = score_reinforcement(current_stats) if current_stats else 0
@@ -203,6 +234,8 @@ def find_best_reinforcement(stats, current_reinforcement_id, category, dog_energ
             priority_names = ['comida', 'caricias', 'juguete']
         else:  # bajo
             priority_names = ['caricias', 'comida', 'clicker']
+    elif category == 'global':
+        priority_names = GLOBAL_REINFORCEMENT_PRIORITY
     else:
         priority_names = CATEGORY_REINFORCEMENT_PRIORITY.get(category, [])
 
@@ -235,6 +268,32 @@ def find_best_reinforcement(stats, current_reinforcement_id, category, dog_energ
         if s > best_score:
             best_score = s
             best = stat
+
+    # Si ningún refuerzo YA PROBADO supera al actual, sugerir el mejor NO
+    # PROBADO según el orden de prioridad. Rompe el problema del huevo y la
+    # gallina: sin esto, con un solo refuerzo usado nunca se sugeriría probar
+    # uno nuevo aunque el actual esté fallando.
+    if best is None:
+        tested_ids = set(stats.keys())
+        # Orden preferido: el ranking de la encuesta del perro; si no, la
+        # prioridad de la categoría.
+        order = fallback_priority or priority_names
+        for name in order:
+            ref = (
+                ReinforcementTypes.objects.filter(name__iexact=name).first()
+                or ReinforcementTypes.objects.filter(name__icontains=name).first()
+            )
+            if (ref and str(ref.id) != str(current_reinforcement_id)
+                    and str(ref.id) not in tested_ids):
+                best = {
+                    'reinforcement_id': str(ref.id),
+                    'reinforcement_name': ref.name,
+                    'total_sessions': 0,
+                    'success_rate': None,
+                    'avg_response_time': None,
+                    'untested': True,
+                }
+                break
 
     return best
 
@@ -278,12 +337,13 @@ def analyze_and_recommend(request, dog_id):
             level_number
         )
 
-    # Buscar mejor refuerzo
+    # Buscar mejor refuerzo (usando el ranking de la encuesta del perro)
     best = find_best_reinforcement(
         stats,
         current_reinforcement.id,
         category,
-        dog.energy_level
+        dog.energy_level,
+        get_reinforcement_order(dog)
     )
 
     if not best:
@@ -294,15 +354,26 @@ def analyze_and_recommend(request, dog_id):
 
     # Construir razón legible
     current_stat = stats.get(str(current_reinforcement.id), {})
-    reason_text = (
-        f"Nivel {level_number} — categoría '{category}'. "
-        f"El refuerzo actual ({current_reinforcement.name}) tiene "
-        f"{round(current_stat.get('success_rate', 0) * 100, 1)}% de éxito "
-        f"con tiempo promedio de {current_stat.get('avg_response_time', 'N/A')}s. "
-        f"Se recomienda {best['reinforcement_name']} con "
-        f"{round(best['success_rate'] * 100, 1)}% de éxito "
-        f"y tiempo promedio de {best.get('avg_response_time', 'N/A')}s."
-    )
+    current_success = round(current_stat.get('success_rate', 0) * 100, 1)
+
+    if best.get('untested'):
+        # Sugerencia de un refuerzo aún no probado (no hay datos para comparar).
+        reason_text = (
+            f"El refuerzo actual ({current_reinforcement.name}) rinde al "
+            f"{current_success}% de éxito. Aún no has probado "
+            f"{best['reinforcement_name']}: te recomendamos intentarlo, "
+            f"suele funcionar mejor para este tipo de ejercicios."
+        )
+    else:
+        reason_text = (
+            f"Nivel {level_number} — categoría '{category}'. "
+            f"El refuerzo actual ({current_reinforcement.name}) tiene "
+            f"{current_success}% de éxito "
+            f"con tiempo promedio de {current_stat.get('avg_response_time', 'N/A')}s. "
+            f"Se recomienda {best['reinforcement_name']} con "
+            f"{round(best['success_rate'] * 100, 1)}% de éxito "
+            f"y tiempo promedio de {best.get('avg_response_time', 'N/A')}s."
+        )
 
     try:
         recommended_reinforcement = ReinforcementTypes.objects.get(
