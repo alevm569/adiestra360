@@ -1,11 +1,11 @@
 import { useState } from "react"
 import { Navigate, useNavigate } from "react-router-dom"
 import { cn } from "@/lib/utils"
-import { cap, reinforcementIcon } from "@/lib/exercise"
+import { cap, reinforcementIcon, masteredExerciseIds, isSuperado } from "@/lib/exercise"
 import { Icon } from "@/components/Icon"
 import { Button } from "@/components/ui/button"
 import { useDogStore } from "@/stores/dogStore"
-import { useActivePlan } from "@/features/plan/api"
+import { useDashboard } from "@/features/dashboard/api"
 import {
   useTrainSession,
   type Rating,
@@ -24,7 +24,7 @@ const RATINGS: { value: Rating; icon: string; label: string }[] = [
 export function SessionPage() {
   const navigate = useNavigate()
   const activeDogId = useDogStore((s) => s.activeDogId)
-  const { data: plan, isLoading } = useActivePlan(activeDogId)
+  const { data, isLoading } = useDashboard(activeDogId)
   const train = useTrainSession(activeDogId)
 
   const [ratings, setRatings] = useState<Record<string, Rating>>({})
@@ -32,8 +32,11 @@ export function SessionPage() {
 
   if (!activeDogId) return <Navigate to="/" replace />
 
-  const todo = (plan?.exercises ?? [])
-    .filter((e) => e.active && !e.dominated)
+  // Ejercicios a practicar hoy: activos y NO superados (ni por encuesta ni por
+  // sesiones). Los superados dejan de aparecer.
+  const masteredIds = masteredExerciseIds(data?.exercise_progress)
+  const todo = (data?.plan?.exercises ?? [])
+    .filter((e) => e.active && !isSuperado(e, masteredIds))
     .sort((a, b) => (a.order_number ?? 0) - (b.order_number ?? 0))
 
   const ratedCount = Object.keys(ratings).length

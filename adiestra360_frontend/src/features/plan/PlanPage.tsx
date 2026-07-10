@@ -1,17 +1,17 @@
 import { Link, Navigate } from "react-router-dom"
 import { cn } from "@/lib/utils"
-import { cap, reinforcementIcon } from "@/lib/exercise"
+import { cap, reinforcementIcon, masteredExerciseIds, isSuperado } from "@/lib/exercise"
 import { Icon } from "@/components/Icon"
 import { Ring } from "@/components/Ring"
 import { BottomNav } from "@/components/BottomNav"
 import { Button } from "@/components/ui/button"
 import { useDogStore } from "@/stores/dogStore"
-import { useActivePlan } from "./api"
+import { useDashboard } from "@/features/dashboard/api"
 import type { PlanExerciseItem } from "@/types"
 
-function statusOf(e: PlanExerciseItem) {
-  if (e.dominated)
-    return { label: "Dominado", tone: "bg-primary-soft text-primary-deep", icon: "check_circle", fill: true }
+function statusOf(e: PlanExerciseItem, masteredIds: Set<string>) {
+  if (isSuperado(e, masteredIds))
+    return { label: "Superado", tone: "bg-primary-soft text-primary-deep", icon: "check_circle", fill: true }
   if (e.active)
     return {
       label: "En progreso",
@@ -24,10 +24,12 @@ function statusOf(e: PlanExerciseItem) {
 
 export function PlanPage() {
   const activeDogId = useDogStore((s) => s.activeDogId)
-  const { data: plan, isLoading, isError } = useActivePlan(activeDogId)
+  const { data, isLoading, isError } = useDashboard(activeDogId)
+  const plan = data?.plan
 
   if (!activeDogId) return <Navigate to="/" replace />
 
+  const masteredIds = masteredExerciseIds(data?.exercise_progress)
   const all = plan?.exercises ?? []
   const levelExercises = all.filter(
     (e) => e.exercise.level_name === plan?.current_level_name
@@ -35,7 +37,7 @@ export function PlanPage() {
   const list = (levelExercises.length ? levelExercises : all).sort(
     (a, b) => (a.order_number ?? 0) - (b.order_number ?? 0)
   )
-  const dominated = list.filter((e) => e.dominated).length
+  const dominated = list.filter((e) => isSuperado(e, masteredIds)).length
 
   return (
     <div className="flex h-dvh flex-col">
@@ -94,13 +96,13 @@ export function PlanPage() {
             </div>
 
             {list.map((e) => {
-              const st = statusOf(e)
+              const st = statusOf(e, masteredIds)
               return (
                 <div
                   key={e.id}
                   className={cn(
                     "mb-2.5 flex items-center gap-3 rounded-2xl border border-border bg-card p-3",
-                    !e.active && !e.dominated && "opacity-60"
+                    !e.active && !isSuperado(e, masteredIds) && "opacity-60"
                   )}
                 >
                   <span className="grid size-6 flex-none place-items-center rounded-lg bg-muted font-display text-xs font-extrabold text-muted-foreground">

@@ -1,7 +1,7 @@
 import { useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { cn } from "@/lib/utils"
-import { cap, reinforcementIcon } from "@/lib/exercise"
+import { cap, reinforcementIcon, masteredExerciseIds, isSuperado } from "@/lib/exercise"
 import { Wordmark } from "@/components/Brandmark"
 import { Icon } from "@/components/Icon"
 import { Ring } from "@/components/Ring"
@@ -246,7 +246,12 @@ function DashboardContent({
 
       {/* Recomendación de la IA */}
       {data.active_recommendation && plan && (
-        <RecommendationCard rec={data.active_recommendation} plan={plan} dogId={dogId} />
+        <RecommendationCard
+          rec={data.active_recommendation}
+          plan={plan}
+          masteredIds={masteredExerciseIds(exercise_progress)}
+          dogId={dogId}
+        />
       )}
 
       {/* Ejercicios de hoy */}
@@ -326,13 +331,27 @@ function DashboardContent({
 function RecommendationCard({
   rec,
   plan,
+  masteredIds,
   dogId,
 }: {
   rec: ActiveRecommendation
   plan: ActivePlan
+  masteredIds: Set<string>
   dogId: string
 }) {
   const apply = useApplyRecommendation(dogId)
+
+  // Solo los ejercicios activos que usan el refuerzo actual y NO están
+  // superados (los que en verdad están costando).
+  const targetIds = plan.exercises
+    .filter(
+      (e) =>
+        e.active &&
+        e.reinforcement_type?.id === rec.previous_strategy &&
+        !isSuperado(e, masteredIds)
+    )
+    .map((e) => e.id)
+
   return (
     <div className="mb-4 rounded-2xl border border-coral-soft bg-coral-soft/50 p-4">
       <div className="mb-1 flex items-center gap-2 font-display text-sm font-extrabold text-coral-deep">
@@ -348,13 +367,9 @@ function RecommendationCard({
       )}
       <Button
         onClick={() =>
-          apply.mutate({
-            plan,
-            prevStrategyId: rec.previous_strategy,
-            newStrategyId: rec.recommended_strategy,
-          })
+          apply.mutate({ targetIds, newStrategyId: rec.recommended_strategy })
         }
-        disabled={apply.isPending}
+        disabled={apply.isPending || targetIds.length === 0}
         className="mt-3 h-10 w-full rounded-xl bg-linear-to-br from-coral to-coral-deep text-sm font-extrabold"
       >
         {apply.isPending ? "Aplicando…" : `Cambiar a ${rec.recommended_strategy_name}`}
