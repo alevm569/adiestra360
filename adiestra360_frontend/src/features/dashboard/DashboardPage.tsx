@@ -179,14 +179,15 @@ function DashboardContent({
   const { dog, plan, exercise_progress, gamification } = data
 
   const progressById = new Map(exercise_progress.map((p) => [p.exercise_id, p]))
+  const masteredIds = masteredExerciseIds(exercise_progress)
 
   const activeExercises = (plan?.exercises ?? [])
     .filter((e) => e.active)
     .sort((a, b) => (a.order_number ?? 0) - (b.order_number ?? 0))
 
-  const doneCount = activeExercises.filter(
-    (e) => e.dominated || progressById.get(e.exercise.id)?.mastered
-  ).length
+  // Lo que falta hoy: activos y NO superados (repasar / continuar / empezar).
+  const pending = activeExercises.filter((e) => !isSuperado(e, masteredIds))
+  const doneCount = activeExercises.filter((e) => isSuperado(e, masteredIds)).length
   const percent = activeExercises.length
     ? Math.round((doneCount / activeExercises.length) * 100)
     : 0
@@ -249,27 +250,29 @@ function DashboardContent({
         <RecommendationCard
           rec={data.active_recommendation}
           plan={plan}
-          masteredIds={masteredExerciseIds(exercise_progress)}
+          masteredIds={masteredIds}
           dogId={dogId}
         />
       )}
 
-      {/* Ejercicios de hoy */}
+      {/* Ejercicios de hoy (solo pendientes) */}
       <div className="mb-2.5 flex items-center justify-between">
         <span className="text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">
           Ejercicios de hoy
         </span>
         <small className="text-xs font-extrabold text-muted-foreground">
-          {doneCount} / {activeExercises.length}
+          {pending.length} pendientes
         </small>
       </div>
 
-      {activeExercises.length === 0 ? (
+      {pending.length === 0 ? (
         <p className="rounded-2xl border border-border bg-card p-4 text-center text-sm font-semibold text-muted-foreground">
-          Tu plan aún no tiene ejercicios activos.
+          {activeExercises.length === 0
+            ? "Tu plan aún no tiene ejercicios activos."
+            : "¡Todo al día! No tienes ejercicios pendientes hoy. 🎉"}
         </p>
       ) : (
-        activeExercises.map((e) => {
+        pending.map((e) => {
           const st = exerciseState(e, progressById.get(e.exercise.id))
           const rowClass =
             "mb-2.5 flex items-center gap-3 rounded-2xl border border-border bg-card p-3"
