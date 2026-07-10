@@ -385,13 +385,28 @@ def analyze_and_recommend(request, dog_id):
             status=status.HTTP_404_NOT_FOUND
         )
 
-    recommendation = AiRecommendations.objects.create(
-        id=str(uuid.uuid4()),
-        dog=dog,
-        previous_strategy=current_reinforcement,
-        recommended_strategy=recommended_reinforcement,
-        reason=reason_text
+    # Evitar duplicados: si la última recomendación ya sugiere exactamente lo
+    # mismo y sigue vigente, se reutiliza en vez de crear otra igual (analyze
+    # se llama tras cada sesión).
+    latest = AiRecommendations.objects.filter(dog=dog).order_by('-created_at').first()
+    is_duplicate = bool(
+        latest
+        and str(latest.previous_strategy_id) == str(current_reinforcement.id)
+        and str(latest.recommended_strategy_id) == str(recommended_reinforcement.id)
     )
+
+    if is_duplicate:
+        recommendation = latest
+        resp_status = status.HTTP_200_OK
+    else:
+        recommendation = AiRecommendations.objects.create(
+            id=str(uuid.uuid4()),
+            dog=dog,
+            previous_strategy=current_reinforcement,
+            recommended_strategy=recommended_reinforcement,
+            reason=reason_text
+        )
+        resp_status = status.HTTP_201_CREATED
 
     return Response({
         'recommendation': AiRecommendationSerializer(recommendation).data,
@@ -400,7 +415,7 @@ def analyze_and_recommend(request, dog_id):
         'current_stats': current_stat,
         'recommended_stats': best,
         'message': f'Se recomienda cambiar el refuerzo a {best["reinforcement_name"]}.'
-    }, status=status.HTTP_201_CREATED)
+    }, status=resp_status)
 
 
 @api_view(['GET'])

@@ -1,5 +1,20 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { api } from "@/lib/api"
+import type { ActiveRecommendation } from "@/types"
+
+/** Historial de recomendaciones de la IA para el perro (más recientes primero). */
+export function useRecommendationHistory(dogId: string | null) {
+  return useQuery({
+    queryKey: ["recommendations", dogId],
+    queryFn: async () => {
+      const { data } = await api.get<ActiveRecommendation[]>(
+        `/recommendations/${dogId}/history/`
+      )
+      return data
+    },
+    enabled: !!dogId,
+  })
+}
 
 interface ApplyArgs {
   /** IDs de los ejercicios del plan (TrainingPlanExercise) a cambiar */
@@ -27,6 +42,7 @@ export function useApplyRecommendation(dogId: string | null) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["dashboard", dogId] })
       qc.invalidateQueries({ queryKey: ["plan", dogId] })
+      qc.invalidateQueries({ queryKey: ["recommendations", dogId] })
     },
   })
 }

@@ -7,7 +7,16 @@ import { BottomNav } from "@/components/BottomNav"
 import { Button } from "@/components/ui/button"
 import { useDogStore } from "@/stores/dogStore"
 import { useDashboard } from "@/features/dashboard/api"
+import { useRecommendationHistory } from "@/features/recommendations/api"
 import type { PlanExerciseItem } from "@/types"
+
+const formatDate = (iso: string) => {
+  try {
+    return new Date(iso).toLocaleDateString("es-ES", { day: "numeric", month: "short" })
+  } catch {
+    return ""
+  }
+}
 
 function statusOf(e: PlanExerciseItem, masteredIds: Set<string>) {
   if (isSuperado(e, masteredIds))
@@ -25,6 +34,7 @@ function statusOf(e: PlanExerciseItem, masteredIds: Set<string>) {
 export function PlanPage() {
   const activeDogId = useDogStore((s) => s.activeDogId)
   const { data, isLoading, isError } = useDashboard(activeDogId)
+  const history = useRecommendationHistory(activeDogId)
   const plan = data?.plan
 
   if (!activeDogId) return <Navigate to="/" replace />
@@ -132,6 +142,31 @@ export function PlanPage() {
               </Link>
             </Button>
           </>
+        )}
+
+        {/* Historial de consejos de la IA */}
+        {history.data && history.data.length > 0 && (
+          <div className="mb-6">
+            <div className="mb-2.5 flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">
+              <Icon name="lightbulb" fill className="text-sm text-coral" />
+              Consejos de la IA
+            </div>
+            {history.data.map((r) => (
+              <div key={r.id} className="mb-2.5 rounded-2xl border border-border bg-card p-3.5">
+                <div className="flex items-center justify-between gap-2">
+                  <b className="font-display text-sm text-coral-deep">
+                    Cambiar a {cap(r.recommended_strategy_name)}
+                  </b>
+                  <small className="flex-none text-[10px] font-extrabold text-muted-foreground">
+                    {formatDate(r.created_at)}
+                  </small>
+                </div>
+                <p className="mt-1 text-xs font-semibold text-muted-foreground">
+                  Antes: {r.previous_strategy_name}. {r.reason}
+                </p>
+              </div>
+            ))}
+          </div>
         )}
       </div>
 

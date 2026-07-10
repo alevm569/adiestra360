@@ -127,6 +127,18 @@ class AnalyzeAndRecommendTests(TestCase):
             response.data['recommendation']['recommended_strategy_name'], 'Pelota'
         )
 
+    def test_analyze_does_not_duplicate_same_recommendation(self):
+        # analyze se llama tras cada sesión; la misma sugerencia no debe
+        # crear filas repetidas en el historial.
+        create_plan(self.dog, self.catalog['levels']['lvl1'], [(self.ex, self.comida)])
+        for _ in range(3):
+            create_session(self.dog, self.ex, self.comida, success=False)
+        r1 = self.client.post(f'/api/recommendations/{self.dog.id}/analyze/', {}, format='json')
+        self.assertEqual(r1.status_code, status.HTTP_201_CREATED)
+        r2 = self.client.post(f'/api/recommendations/{self.dog.id}/analyze/', {}, format='json')
+        self.assertEqual(r2.status_code, status.HTTP_200_OK)
+        self.assertEqual(AiRecommendations.objects.filter(dog=self.dog).count(), 1)
+
     def test_analyze_acceptable_performance_no_recommendation(self):
         create_plan(self.dog, self.catalog['levels']['lvl1'], [(self.ex, self.comida)])
         for _ in range(3):
