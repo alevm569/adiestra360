@@ -59,3 +59,39 @@ class TrainingPlanExercises(models.Model):
 
     class Meta:
         db_table = 'training_plan_exercises'
+
+
+class TrainingMethods(models.Model):
+    """
+    Métodos globales de enseñanza (p. ej. 'Señuelo', 'Moldeado').
+    Se recomienda uno u otro según la motivación (energía) del perro.
+    """
+    id = models.CharField(primary_key=True, max_length=36, default=uuid.uuid4)
+    key = models.CharField(max_length=50, unique=True)
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
+    # Niveles de motivación (energy_level) para los que se recomienda este
+    # método, separados por coma. P. ej. 'alto' o 'medio,bajo'.
+    motivation_levels = models.CharField(max_length=50, blank=True, null=True)
+
+    class Meta:
+        db_table = 'training_methods'
+
+
+class ExerciseTechniques(models.Model):
+    """
+    Cómo enseñar un ejercicio con un método concreto: los pasos.
+    Un ejercicio tiene una técnica por cada método global.
+    """
+    id = models.CharField(primary_key=True, max_length=36, default=uuid.uuid4)
+    exercise = models.ForeignKey(Exercises, models.CASCADE)
+    method = models.ForeignKey(TrainingMethods, models.CASCADE)
+    # Pasos de la técnica: lista de objetos {"text": str, "image": url|null}.
+    # Cada paso puede llevar una imagen (las del PDF).
+    steps = models.JSONField(default=list, blank=True)
+    tips = models.TextField(blank=True, null=True)
+    materials = models.TextField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'exercise_techniques'
+        unique_together = ('exercise', 'method')

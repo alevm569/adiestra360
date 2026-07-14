@@ -187,6 +187,36 @@ export interface DashboardResponse {
   active_recommendation: ActiveRecommendation | null
 }
 
+// ---- Técnicas (cómo enseñar cada ejercicio) ----
+export interface TechniqueStep {
+  text: string
+  /** Imagen del paso (del PDF); null si aún no hay. */
+  image: string | null
+}
+
+export interface TechniqueMethod {
+  method_key: string
+  method_name: string
+  method_description: string | null
+  steps: TechniqueStep[]
+  tips: string | null
+  materials: string | null
+}
+
+export interface ExerciseTechniqueResponse {
+  exercise: {
+    id: string
+    name: string
+    description: string | null
+    difficulty: number | null
+    estimated_duration: number | null
+  }
+  motivation: string
+  recommended_reinforcement: string | null
+  suggested_method: TechniqueMethod | null
+  other_methods: TechniqueMethod[]
+}
+
 // ---- Perfil / gamificación ----
 export interface UserStats {
   total_xp: number

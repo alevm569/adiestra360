@@ -108,8 +108,9 @@ export function PlanPage() {
             {list.map((e) => {
               const st = statusOf(e, masteredIds)
               return (
-                <div
+                <Link
                   key={e.id}
+                  to={`/ejercicio/${e.exercise.id}`}
                   className={cn(
                     "mb-2.5 flex items-center gap-3 rounded-2xl border border-border bg-card p-3",
                     !e.active && !isSuperado(e, masteredIds) && "opacity-60"
@@ -128,7 +129,8 @@ export function PlanPage() {
                   <span className={cn("rounded-full px-2.5 py-1 text-[10px] font-extrabold", st.tone)}>
                     {st.label}
                   </span>
-                </div>
+                  <Icon name="chevron_right" className="text-lg text-muted-foreground" />
+                </Link>
               )
             })}
 

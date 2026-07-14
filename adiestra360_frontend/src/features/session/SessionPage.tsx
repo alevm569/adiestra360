@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Navigate, useNavigate } from "react-router-dom"
+import { Link, Navigate, useNavigate } from "react-router-dom"
 import { cn } from "@/lib/utils"
 import { cap, reinforcementIcon, masteredExerciseIds, isSuperado } from "@/lib/exercise"
 import { Icon } from "@/components/Icon"
@@ -167,6 +167,13 @@ function ExerciseRater({
             Refuerzo: {item.reinforcement_type?.name ?? "—"}
           </small>
         </div>
+        <Link
+          to={`/ejercicio/${item.exercise.id}`}
+          className="flex flex-none items-center gap-0.5 text-[11px] font-extrabold text-primary-deep"
+        >
+          <Icon name="menu_book" className="text-sm" />
+          Cómo
+        </Link>
       </div>
       <div className="flex gap-2">
         {RATINGS.map((r) => {

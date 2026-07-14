@@ -18,6 +18,7 @@ import type {
   DashboardResponse,
   ExerciseProgress,
   PlanExerciseItem,
+  SessionStats,
 } from "@/types"
 
 export function DashboardPage() {
@@ -176,7 +177,7 @@ function DashboardContent({
   data: DashboardResponse
   dogId: string
 }) {
-  const { dog, plan, exercise_progress, gamification } = data
+  const { dog, plan, exercise_progress, gamification, stats } = data
 
   const progressById = new Map(exercise_progress.map((p) => [p.exercise_id, p]))
   const masteredIds = masteredExerciseIds(exercise_progress)
@@ -244,6 +245,9 @@ function DashboardContent({
           </span>
         </div>
       </div>
+
+      {/* Desempeño (rendimiento del entrenamiento) */}
+      {stats.total_sessions > 0 && <PerformanceCard stats={stats} />}
 
       {/* Recomendación de la IA */}
       {data.active_recommendation && plan && (
@@ -327,6 +331,50 @@ function DashboardContent({
           ))}
         </div>
       )}
+    </div>
+  )
+}
+
+function PerformanceCard({ stats }: { stats: SessionStats }) {
+  const tiles = [
+    {
+      icon: "check_circle",
+      value: `${Math.round(stats.success_rate)}%`,
+      label: "Éxito",
+      tone: "text-primary-deep",
+    },
+    {
+      icon: "timer",
+      value: stats.avg_response_time != null ? `${stats.avg_response_time}s` : "—",
+      label: "Respuesta",
+      tone: "text-sky-deep",
+    },
+    {
+      icon: "history",
+      value: String(stats.total_sessions),
+      label: "Sesiones",
+      tone: "text-amber-deep",
+    },
+  ]
+  return (
+    <div className="mb-4 rounded-2xl border border-border bg-card p-4 shadow-sm">
+      <div className="mb-3 text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">
+        Desempeño
+      </div>
+      <div className="flex items-center">
+        {tiles.map((t, i) => (
+          <div key={t.label} className="flex flex-1 items-center">
+            {i > 0 && <div className="h-9 w-px bg-border" />}
+            <div className="flex-1 text-center">
+              <Icon name={t.icon} fill className={cn("text-xl", t.tone)} />
+              <b className="mt-0.5 block font-display text-lg leading-none">{t.value}</b>
+              <small className="text-[10px] font-extrabold text-muted-foreground">
+                {t.label}
+              </small>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

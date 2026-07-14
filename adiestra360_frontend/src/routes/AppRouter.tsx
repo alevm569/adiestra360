@@ -10,6 +10,7 @@ import { PlanPage } from "@/features/plan/PlanPage"
 import { ProfilePage } from "@/features/profile/ProfilePage"
 import { EditProfilePage } from "@/features/profile/EditProfilePage"
 import { DogsPage } from "@/features/dogs/DogsPage"
+import { ExerciseTechniquePage } from "@/features/technique/ExerciseTechniquePage"
 
 export function AppRouter() {
   return (
@@ -28,6 +29,7 @@ export function AppRouter() {
         <Route path="/perfil" element={<ProfilePage />} />
         <Route path="/perfil/editar" element={<EditProfilePage />} />
         <Route path="/perros" element={<DogsPage />} />
+        <Route path="/ejercicio/:exerciseId" element={<ExerciseTechniquePage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

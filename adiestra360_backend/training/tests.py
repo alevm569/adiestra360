@@ -9,6 +9,7 @@ from testkit import (
 from training.models import (
     TrainingLevels, Exercises, ReinforcementTypes,
     TrainingPlans, TrainingPlanExercises,
+    TrainingMethods, ExerciseTechniques,
 )
 
 
@@ -320,3 +321,71 @@ class UpdateReinforcementTests(TestCase):
             format='json',
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class ExerciseTechniqueTests(TestCase):
+    """GET /exercise/<exercise_id>/technique/<dog_id>/ — método según motivación."""
+
+    def setUp(self):
+        self.catalog = create_catalog()
+        self.user = make_user()
+        self.client = auth_client(self.user)
+        self.ex = self.catalog['exercises']['sientate']
+
+        self.senuelo = TrainingMethods.objects.create(
+            id=str(uuid.uuid4()), key='senuelo', name='Señuelo',
+            motivation_levels='medio,bajo',
+        )
+        self.moldeado = TrainingMethods.objects.create(
+            id=str(uuid.uuid4()), key='moldeado', name='Moldeado',
+            motivation_levels='alto',
+        )
+        ExerciseTechniques.objects.create(
+            id=str(uuid.uuid4()), exercise=self.ex, method=self.senuelo,
+            steps=[{'text': 'Sostén el premio', 'image': None}],
+        )
+        ExerciseTechniques.objects.create(
+            id=str(uuid.uuid4()), exercise=self.ex, method=self.moldeado,
+            steps=[{'text': 'Premia el intento', 'image': 'http://img/1.png'}],
+        )
+
+    def _get(self, dog):
+        return self.client.get(
+            f'/api/training/exercise/{self.ex.id}/technique/{dog.id}/'
+        )
+
+    def test_suggests_senuelo_for_low_energy(self):
+        dog = create_dog(self.user, energy_level='bajo')
+        r = self._get(dog)
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        self.assertEqual(r.data['motivation'], 'bajo')
+        self.assertEqual(r.data['suggested_method']['method_name'], 'Señuelo')
+
+    def test_suggests_moldeado_for_high_energy(self):
+        dog = create_dog(self.user, energy_level='alto')
+        r = self._get(dog)
+        self.assertEqual(r.data['suggested_method']['method_name'], 'Moldeado')
+
+    def test_steps_carry_image_field(self):
+        dog = create_dog(self.user, energy_level='alto')
+        r = self._get(dog)
+        steps = r.data['suggested_method']['steps']
+        self.assertEqual(steps[0]['image'], 'http://img/1.png')
+
+    def test_other_methods_included(self):
+        dog = create_dog(self.user, energy_level='bajo')
+        r = self._get(dog)
+        names = [m['method_name'] for m in r.data['other_methods']]
+        self.assertIn('Moldeado', names)
+
+    def test_dog_not_found(self):
+        r = self.client.get(
+            f'/api/training/exercise/{self.ex.id}/technique/{uuid.uuid4()}/'
+        )
+        self.assertEqual(r.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_unauthenticated(self):
+        dog = create_dog(self.user, energy_level='alto')
+        self.client.credentials()
+        r = self._get(dog)
+        self.assertEqual(r.status_code, status.HTTP_401_UNAUTHORIZED)
