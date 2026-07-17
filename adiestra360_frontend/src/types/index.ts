@@ -188,19 +188,42 @@ export interface DashboardResponse {
 }
 
 // ---- Técnicas (cómo enseñar cada ejercicio) ----
-export interface TechniqueStep {
+
+/** Variante equivalente de un paso (p. ej. con golosina en vez de la cadena). */
+export interface StepAlternative {
+  title: string
   text: string
-  /** Imagen del paso (del PDF); null si aún no hay. */
   image: string | null
+  /** Cuándo conviene usarla. */
+  when: string
 }
 
-export interface TechniqueMethod {
-  method_key: string
-  method_name: string
-  method_description: string | null
+export interface TechniqueStep {
+  order: number
+  title: string
+  text: string
+  image: string | null
+  alternative?: StepAlternative | null
+}
+
+export interface CommonError {
+  error: string
+  correccion: string
+}
+
+/** Tutorial completo de un ejercicio (de la teoría). */
+export interface Technique {
+  code: string | null
+  objetivo: string | null
+  prerrequisito: string | null
+  duracion: string | null
+  frecuencia: string | null
+  competencias: string[]
+  materiales: string[]
+  reglas: string[]
   steps: TechniqueStep[]
-  tips: string | null
-  materials: string | null
+  errores_comunes: CommonError[]
+  criterio_avanzar: string[]
 }
 
 export interface ExerciseTechniqueResponse {
@@ -213,8 +236,10 @@ export interface ExerciseTechniqueResponse {
   }
   motivation: string
   recommended_reinforcement: string | null
-  suggested_method: TechniqueMethod | null
-  other_methods: TechniqueMethod[]
+  /** Si conviene destacar la variante alternativa para este perro. */
+  suggest_alternative: boolean
+  alternative_reason: string | null
+  technique: Technique | null
 }
 
 // ---- Perfil / gamificación ----

@@ -6,10 +6,11 @@ from testkit import (
     create_catalog, make_user, auth_client, create_dog,
     create_plan, create_session,
 )
+from training.constants import NIVEL1_NAMES, AQUI, SIENTATE
 from training.models import (
     TrainingLevels, Exercises, ReinforcementTypes,
     TrainingPlans, TrainingPlanExercises,
-    TrainingMethods, ExerciseTechniques,
+    ExerciseTechniques,
 )
 
 
@@ -154,8 +155,8 @@ class EvaluateProgressTests(TestCase):
         self.assertTrue(response.data['exercise_mastered'])
         self.assertFalse(response.data['level_upgraded'])
         self.assertIsNotNone(response.data['next_exercise_unlocked'])
-        # 'llamado' es el siguiente ejercicio del nivel 1 no incluido aún
-        self.assertEqual(response.data['next_exercise_unlocked']['name'], 'Llamado')
+        # El 3er ejercicio del catálogo es el siguiente no incluido aún
+        self.assertEqual(response.data['next_exercise_unlocked']['name'], NIVEL1_NAMES[AQUI])
 
     def test_evaluate_completes_level_and_upgrades(self):
         # Plan con un único ejercicio dominado → nivel completo → sube a nivel 2
@@ -189,7 +190,8 @@ class LevelUpgradeOrderingTests(TestCase):
         self.lvl2 = TrainingLevels.objects.create(id='aaa-nivel', name='Nivel 2', description='')
         self.comida = ReinforcementTypes.objects.create(id='ref-001', name='Comida')
         self.ex1 = Exercises.objects.create(
-            id='ex-001', level=self.lvl1, name='Siéntate', difficulty=1, estimated_duration=10
+            id='ex-001', level=self.lvl1, name=NIVEL1_NAMES[SIENTATE],
+            difficulty=1, estimated_duration=10
         )
         Exercises.objects.create(
             id='ex-101', level=self.lvl2, name='Rastreo', difficulty=1, estimated_duration=10
@@ -324,29 +326,39 @@ class UpdateReinforcementTests(TestCase):
 
 
 class ExerciseTechniqueTests(TestCase):
-    """GET /exercise/<exercise_id>/technique/<dog_id>/ — método según motivación."""
+    """GET /exercise/<exercise_id>/technique/<dog_id>/ — tutorial + variante."""
+
+    STEPS = [
+        {
+            'order': 1, 'title': 'Posición inicial',
+            'text': 'Coloca a la perra en un sentado correcto.',
+            'image': '/tecnicas/OB-002-01.png',
+        },
+        {
+            'order': 2, 'title': 'Guía mecánica',
+            'text': 'Controla el collar y guía el movimiento.',
+            'image': '/tecnicas/OB-002-02.png',
+            'alternative': {
+                'title': 'Con golosina',
+                'text': 'Atrae el hocico con un premio.',
+                'image': '/tecnicas/OB-002-04.png',
+                'when': 'Si la perra se motiva más con comida.',
+            },
+        },
+    ]
 
     def setUp(self):
         self.catalog = create_catalog()
         self.user = make_user()
         self.client = auth_client(self.user)
         self.ex = self.catalog['exercises']['sientate']
-
-        self.senuelo = TrainingMethods.objects.create(
-            id=str(uuid.uuid4()), key='senuelo', name='Señuelo',
-            motivation_levels='medio,bajo',
-        )
-        self.moldeado = TrainingMethods.objects.create(
-            id=str(uuid.uuid4()), key='moldeado', name='Moldeado',
-            motivation_levels='alto',
-        )
         ExerciseTechniques.objects.create(
-            id=str(uuid.uuid4()), exercise=self.ex, method=self.senuelo,
-            steps=[{'text': 'Sostén el premio', 'image': None}],
-        )
-        ExerciseTechniques.objects.create(
-            id=str(uuid.uuid4()), exercise=self.ex, method=self.moldeado,
-            steps=[{'text': 'Premia el intento', 'image': 'http://img/1.png'}],
+            id=str(uuid.uuid4()), exercise=self.ex, code='OB-002',
+            objetivo='Enseñar la posición de echado.',
+            materiales=['Collar plano'], reglas=['Pronuncia la orden una vez'],
+            steps=self.STEPS,
+            errores_comunes=[{'error': 'Empujar', 'correccion': 'Guiar'}],
+            criterio_avanzar=['Responde a la orden verbal'],
         )
 
     def _get(self, dog):
@@ -354,29 +366,56 @@ class ExerciseTechniqueTests(TestCase):
             f'/api/training/exercise/{self.ex.id}/technique/{dog.id}/'
         )
 
-    def test_suggests_senuelo_for_low_energy(self):
-        dog = create_dog(self.user, energy_level='bajo')
+    def test_returns_tutorial_with_steps(self):
+        dog = create_dog(self.user)
         r = self._get(dog)
         self.assertEqual(r.status_code, status.HTTP_200_OK)
-        self.assertEqual(r.data['motivation'], 'bajo')
-        self.assertEqual(r.data['suggested_method']['method_name'], 'Señuelo')
+        tech = r.data['technique']
+        self.assertEqual(tech['code'], 'OB-002')
+        self.assertEqual(len(tech['steps']), 2)
+        self.assertEqual(tech['materiales'], ['Collar plano'])
+        self.assertEqual(tech['errores_comunes'][0]['correccion'], 'Guiar')
 
-    def test_suggests_moldeado_for_high_energy(self):
-        dog = create_dog(self.user, energy_level='alto')
+    def test_step_alternative_carries_image_and_when(self):
+        dog = create_dog(self.user)
         r = self._get(dog)
-        self.assertEqual(r.data['suggested_method']['method_name'], 'Moldeado')
+        alt = r.data['technique']['steps'][1]['alternative']
+        self.assertEqual(alt['image'], '/tecnicas/OB-002-04.png')
+        self.assertIn('comida', alt['when'])
 
-    def test_steps_carry_image_field(self):
-        dog = create_dog(self.user, energy_level='alto')
+    def test_suggests_alternative_when_dog_prefers_food(self):
+        dog = create_dog(self.user)
+        dog.reinforcement_priority = 'comida,pelota,caricias'
+        dog.save(update_fields=['reinforcement_priority'])
         r = self._get(dog)
-        steps = r.data['suggested_method']['steps']
-        self.assertEqual(steps[0]['image'], 'http://img/1.png')
+        self.assertTrue(r.data['suggest_alternative'])
+        self.assertIn('comida', r.data['alternative_reason'])
 
-    def test_other_methods_included(self):
-        dog = create_dog(self.user, energy_level='bajo')
+    def test_no_alternative_when_dog_prefers_ball(self):
+        dog = create_dog(self.user)
+        dog.reinforcement_priority = 'pelota,comida,caricias'
+        dog.save(update_fields=['reinforcement_priority'])
         r = self._get(dog)
-        names = [m['method_name'] for m in r.data['other_methods']]
-        self.assertIn('Moldeado', names)
+        self.assertFalse(r.data['suggest_alternative'])
+
+    def test_falls_back_to_plan_reinforcement(self):
+        # Sin ranking guardado, se mira el refuerzo que el plan asignó.
+        dog = create_dog(self.user)
+        create_plan(
+            dog, self.catalog['levels']['lvl1'],
+            [(self.ex, self.catalog['reinforcements']['comida'])],
+        )
+        r = self._get(dog)
+        self.assertTrue(r.data['suggest_alternative'])
+
+    def test_technique_null_when_not_loaded(self):
+        other = self.catalog['exercises']['echate']
+        dog = create_dog(self.user)
+        r = self.client.get(
+            f'/api/training/exercise/{other.id}/technique/{dog.id}/'
+        )
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        self.assertIsNone(r.data['technique'])
 
     def test_dog_not_found(self):
         r = self.client.get(
@@ -385,7 +424,7 @@ class ExerciseTechniqueTests(TestCase):
         self.assertEqual(r.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_unauthenticated(self):
-        dog = create_dog(self.user, energy_level='alto')
+        dog = create_dog(self.user)
         self.client.credentials()
         r = self._get(dog)
         self.assertEqual(r.status_code, status.HTTP_401_UNAUTHORIZED)

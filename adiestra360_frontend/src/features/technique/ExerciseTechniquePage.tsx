@@ -1,28 +1,21 @@
-import { useState, type ReactNode } from "react"
+import type { ReactNode } from "react"
 import { Navigate, useNavigate, useParams } from "react-router-dom"
 import { cn } from "@/lib/utils"
 import { cap, reinforcementIcon } from "@/lib/exercise"
 import { Icon } from "@/components/Icon"
 import { useDogStore } from "@/stores/dogStore"
 import { useExerciseTechnique } from "./api"
-import type { TechniqueMethod } from "@/types"
+import type { StepAlternative, TechniqueStep } from "@/types"
 
 export function ExerciseTechniquePage() {
   const navigate = useNavigate()
   const { exerciseId } = useParams()
   const activeDogId = useDogStore((s) => s.activeDogId)
   const { data, isLoading, isError } = useExerciseTechnique(exerciseId, activeDogId)
-  const [selected, setSelected] = useState(0)
 
   if (!activeDogId) return <Navigate to="/" replace />
 
-  const methods: TechniqueMethod[] = data
-    ? [data.suggested_method, ...data.other_methods].filter(
-        (m): m is TechniqueMethod => Boolean(m)
-      )
-    : []
-  const suggestedKey = data?.suggested_method?.method_key
-  const method = methods[selected]
+  const tech = data?.technique
 
   return (
     <div className="min-h-safe px-5 pb-safe">
@@ -52,20 +45,16 @@ export function ExerciseTechniquePage() {
 
       {data && (
         <>
-          {/* Ejercicio */}
           <h1 className="mt-1 text-2xl font-bold">{cap(data.exercise.name)}</h1>
-          {data.exercise.description && (
-            <p className="mt-1 text-sm font-semibold text-muted-foreground">
-              {data.exercise.description}
+          {tech?.objetivo && (
+            <p className="mt-1.5 text-sm font-semibold text-muted-foreground">
+              {tech.objetivo}
             </p>
           )}
+
           <div className="mt-3 flex flex-wrap gap-2">
-            {data.exercise.difficulty != null && (
-              <Chip icon="signal_cellular_alt">Dificultad {data.exercise.difficulty}</Chip>
-            )}
-            {data.exercise.estimated_duration != null && (
-              <Chip icon="timer">{data.exercise.estimated_duration} min</Chip>
-            )}
+            {tech?.duracion && <Chip icon="timer">{tech.duracion}</Chip>}
+            {tech?.frecuencia && <Chip icon="event_repeat">{tech.frecuencia}</Chip>}
             {data.recommended_reinforcement && (
               <Chip icon={reinforcementIcon(data.recommended_reinforcement)}>
                 Refuerzo: {data.recommended_reinforcement}
@@ -73,47 +62,83 @@ export function ExerciseTechniquePage() {
             )}
           </div>
 
-          {methods.length === 0 ? (
+          {tech?.prerrequisito && (
+            <Callout icon="flag" tone="sky" title="Antes de este ejercicio">
+              {tech.prerrequisito}
+            </Callout>
+          )}
+
+          {!tech ? (
             <p className="mt-6 rounded-2xl border border-border bg-card p-6 text-center text-sm font-semibold text-muted-foreground">
-              Aún no hay pasos cargados para este ejercicio.
+              Aún no hay tutorial cargado para este ejercicio.
             </p>
           ) : (
             <>
-              {/* Selector de método */}
-              <p className="mt-5 mb-2 text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">
-                Método · elegido según la energía de tu perro ({data.motivation})
-              </p>
-              <div className="flex gap-2">
-                {methods.map((m, i) => {
-                  const isSuggested = m.method_key === suggestedKey
-                  const isSel = i === selected
-                  return (
-                    <button
-                      key={m.method_key}
-                      type="button"
-                      onClick={() => setSelected(i)}
-                      className={cn(
-                        "flex flex-1 items-center justify-center gap-1.5 rounded-xl border-[1.5px] py-2.5 text-sm font-extrabold transition-colors",
-                        isSel
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-border bg-card text-foreground"
-                      )}
-                    >
-                      {isSuggested && (
-                        <Icon name="auto_awesome" fill className="text-sm" />
-                      )}
-                      {m.method_name}
-                    </button>
-                  )
-                })}
-              </div>
+              {tech.materiales.length > 0 && (
+                <BulletCard icon="backpack" title="Necesitas" items={tech.materiales} />
+              )}
+              {tech.reglas.length > 0 && (
+                <BulletCard icon="rule" title="Antes de empezar" items={tech.reglas} />
+              )}
 
-              {method && <MethodDetail method={method} />}
+              {/* Pasos */}
+              <SectionTitle>Pasos</SectionTitle>
+              <ol>
+                {tech.steps.map((step, i) => (
+                  <StepCard
+                    key={step.order ?? i}
+                    step={step}
+                    index={i}
+                    suggestAlternative={data.suggest_alternative}
+                    alternativeReason={data.alternative_reason}
+                  />
+                ))}
+              </ol>
+
+              {tech.errores_comunes.length > 0 && (
+                <>
+                  <SectionTitle>Errores comunes</SectionTitle>
+                  {tech.errores_comunes.map((e, i) => (
+                    <div
+                      key={i}
+                      className="mb-2.5 rounded-2xl border border-border bg-card p-3.5"
+                    >
+                      <div className="flex items-start gap-2.5">
+                        <Icon name="error" fill className="text-lg text-coral" />
+                        <b className="text-sm">{e.error}</b>
+                      </div>
+                      <div className="mt-1.5 flex items-start gap-2.5">
+                        <Icon name="check_circle" fill className="text-lg text-primary-deep" />
+                        <p className="text-sm font-semibold text-muted-foreground">
+                          {e.correccion}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
+
+              {tech.criterio_avanzar.length > 0 && (
+                <BulletCard
+                  icon="verified"
+                  title="Listo para avanzar cuando…"
+                  items={tech.criterio_avanzar}
+                  className="mb-6"
+                />
+              )}
             </>
           )}
         </>
       )}
     </div>
+  )
+}
+
+function SectionTitle({ children }: { children: ReactNode }) {
+  return (
+    <p className="mb-2.5 mt-5 text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">
+      {children}
+    </p>
   )
 }
 
@@ -126,61 +151,151 @@ function Chip({ icon, children }: { icon: string; children: ReactNode }) {
   )
 }
 
-function MethodDetail({ method }: { method: TechniqueMethod }) {
+function Callout({
+  icon,
+  tone,
+  title,
+  children,
+}: {
+  icon: string
+  tone: "sky" | "amber"
+  title: string
+  children: ReactNode
+}) {
+  const tones = {
+    sky: "bg-sky-soft text-sky-deep",
+    amber: "bg-amber-soft text-amber-deep",
+  }
   return (
-    <div className="mt-4">
-      {method.method_description && (
-        <p className="mb-3 text-sm font-semibold text-muted-foreground">
-          {method.method_description}
-        </p>
-      )}
+    <div className={cn("mt-4 flex items-start gap-2.5 rounded-2xl p-3.5", tones[tone])}>
+      <Icon name={icon} fill className="text-lg" />
+      <div>
+        <b className="block text-xs font-extrabold uppercase tracking-wider">{title}</b>
+        <p className="text-sm font-semibold text-foreground">{children}</p>
+      </div>
+    </div>
+  )
+}
 
-      {method.materials && (
-        <div className="mb-4 flex items-start gap-2.5 rounded-2xl border border-border bg-card p-3.5">
-          <Icon name="backpack" fill className="text-lg text-primary-deep" />
-          <div>
-            <b className="block text-xs font-extrabold uppercase tracking-wider text-muted-foreground">
-              Necesitas
-            </b>
-            <p className="text-sm font-semibold">{method.materials}</p>
-          </div>
-        </div>
-      )}
-
-      <p className="mb-2.5 text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">
-        Pasos
-      </p>
-      <ol className="mb-4">
-        {method.steps.map((step, i) => (
-          <li key={i} className="mb-2.5 rounded-2xl border border-border bg-card p-3">
-            <div className="flex gap-3">
-              <span className="grid size-6 flex-none place-items-center rounded-full bg-primary-soft font-display text-xs font-extrabold text-primary-deep">
-                {i + 1}
-              </span>
-              <span className="text-sm font-semibold">{step.text}</span>
-            </div>
-            {step.image && (
-              <img
-                src={step.image}
-                alt={`Paso ${i + 1}`}
-                loading="lazy"
-                className="mt-2.5 w-full rounded-xl border border-border object-cover"
-              />
-            )}
+function BulletCard({
+  icon,
+  title,
+  items,
+  className,
+}: {
+  icon: string
+  title: string
+  items: string[]
+  className?: string
+}) {
+  return (
+    <div className={cn("mt-4 rounded-2xl border border-border bg-card p-3.5", className)}>
+      <div className="mb-2 flex items-center gap-2 text-primary-deep">
+        <Icon name={icon} fill className="text-lg" />
+        <b className="text-xs font-extrabold uppercase tracking-wider">{title}</b>
+      </div>
+      <ul className="flex flex-col gap-1">
+        {items.map((it, i) => (
+          <li key={i} className="flex gap-2 text-sm font-semibold">
+            <span className="text-muted-foreground">·</span>
+            {it}
           </li>
         ))}
-      </ol>
+      </ul>
+    </div>
+  )
+}
 
-      {method.tips && (
-        <div className="mb-6 flex items-start gap-2.5 rounded-2xl bg-amber-soft p-3.5">
-          <Icon name="lightbulb" fill className="text-lg text-amber-deep" />
-          <div>
-            <b className="block text-xs font-extrabold uppercase tracking-wider text-amber-deep">
-              Tip
-            </b>
-            <p className="text-sm font-semibold">{method.tips}</p>
-          </div>
+function StepCard({
+  step,
+  index,
+  suggestAlternative,
+  alternativeReason,
+}: {
+  step: TechniqueStep
+  index: number
+  suggestAlternative: boolean
+  alternativeReason: string | null
+}) {
+  return (
+    <li className="mb-2.5 rounded-2xl border border-border bg-card p-3.5">
+      <div className="flex gap-3">
+        <span className="grid size-6 flex-none place-items-center rounded-full bg-primary-soft font-display text-xs font-extrabold text-primary-deep">
+          {step.order ?? index + 1}
+        </span>
+        <div className="min-w-0 flex-1">
+          <b className="block text-sm">{step.title}</b>
+          <p className="mt-1 text-sm font-semibold text-muted-foreground">{step.text}</p>
         </div>
+      </div>
+
+      {step.image && (
+        <img
+          src={step.image}
+          alt={step.title}
+          loading="lazy"
+          className="mt-2.5 w-full rounded-xl border border-border object-cover"
+        />
+      )}
+
+      {step.alternative && (
+        <AlternativeBlock
+          alt={step.alternative}
+          highlighted={suggestAlternative}
+          reason={alternativeReason}
+        />
+      )}
+    </li>
+  )
+}
+
+function AlternativeBlock({
+  alt,
+  highlighted,
+  reason,
+}: {
+  alt: StepAlternative
+  highlighted: boolean
+  reason: string | null
+}) {
+  return (
+    <div
+      className={cn(
+        "mt-3 rounded-xl p-3",
+        highlighted ? "bg-amber-soft" : "bg-muted"
+      )}
+    >
+      <div
+        className={cn(
+          "mb-1 flex items-center gap-1.5 text-xs font-extrabold",
+          highlighted ? "text-amber-deep" : "text-muted-foreground"
+        )}
+      >
+        <Icon name={highlighted ? "auto_awesome" : "alt_route"} fill className="text-sm" />
+        Alternativa: {alt.title}
+        {highlighted && (
+          <span className="rounded-full bg-amber px-1.5 py-0.5 text-[9px] text-amber-deep">
+            Recomendada
+          </span>
+        )}
+      </div>
+
+      {highlighted && reason && (
+        <p className="mb-1.5 text-[11px] font-bold text-amber-deep">{reason}</p>
+      )}
+
+      <p className="text-sm font-semibold">{alt.text}</p>
+      <p className="mt-1 text-[11px] font-bold text-muted-foreground">
+        Cuándo: {alt.when}
+      </p>
+
+      {alt.image && (
+        <img
+          src={alt.image}
+          alt={alt.title}
+          loading="lazy"
+          className="mt-2.5 w-full rounded-xl border border-border object-cover"
+        />
       )}
     </div>
   )

@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from .models import (
     TrainingLevels, Exercises, ReinforcementTypes,
     TrainingPlans, TrainingPlanExercises,
-    TrainingMethods, ExerciseTechniques
+    ExerciseTechniques
 )
 from .serializers import (
     TrainingLevelSerializer, ExerciseSerializer,
@@ -335,33 +335,48 @@ def update_exercise_reinforcement(request, dog_id, plan_exercise_id):
     })
 
 
-def get_recommended_method(motivation):
+def should_suggest_alternative(dog, plan_reinforcement=None):
     """
-    Elige el método de enseñanza recomendado según la motivación (energía)
-    del perro: el método cuyo motivation_levels incluye ese nivel.
+    Decide si conviene destacar la variante alternativa (la de golosina).
+
+    Se sugiere cuando el perro se motiva sobre todo con comida: primero según
+    el ranking de su encuesta y, si no lo tiene, según el refuerzo que su plan
+    le asignó para este ejercicio.
+    Retorna (sugerir: bool, motivo: str|None).
     """
-    methods = list(TrainingMethods.objects.all())
-    for m in methods:
-        levels = [x.strip() for x in (m.motivation_levels or '').split(',') if x.strip()]
-        if motivation in levels:
-            return m
-    return methods[0] if methods else None
+    order = [
+        p.strip().lower()
+        for p in (getattr(dog, 'reinforcement_priority', '') or '').split(',')
+        if p.strip()
+    ]
+    if order:
+        if order[0] == 'comida':
+            return True, 'Según su encuesta, tu perro se motiva sobre todo con comida.'
+        return False, None
+
+    # Respaldo para perros creados antes de guardar el ranking.
+    if plan_reinforcement and plan_reinforcement.lower() == 'comida':
+        return True, 'El plan de tu perro usa comida como refuerzo.'
+    return False, None
 
 
-def serialize_technique(exercise, method):
-    """Técnica (pasos) de un ejercicio con un método dado."""
-    if not method:
+def serialize_technique(tech):
+    """Tutorial completo de un ejercicio."""
+    if not tech:
         return None
-    tech = ExerciseTechniques.objects.filter(exercise=exercise, method=method).first()
-    steps = tech.steps if (tech and isinstance(tech.steps, list)) else []
     return {
-        'method_key': method.key,
-        'method_name': method.name,
-        'method_description': method.description,
-        # Cada paso: {"text": str, "image": url|null}
-        'steps': steps,
-        'tips': tech.tips if tech else None,
-        'materials': tech.materials if tech else None,
+        'code': tech.code,
+        'objetivo': tech.objetivo,
+        'prerrequisito': tech.prerrequisito,
+        'duracion': tech.duracion,
+        'frecuencia': tech.frecuencia,
+        'competencias': tech.competencias or [],
+        'materiales': tech.materiales or [],
+        'reglas': tech.reglas or [],
+        # [{order, title, text, image, alternative?:{title,text,image,when}}]
+        'steps': tech.steps if isinstance(tech.steps, list) else [],
+        'errores_comunes': tech.errores_comunes or [],
+        'criterio_avanzar': tech.criterio_avanzar or [],
     }
 
 
@@ -369,8 +384,8 @@ def serialize_technique(exercise, method):
 @permission_classes([IsAuthenticated])
 def exercise_technique(request, dog_id, exercise_id):
     """
-    Cómo enseñar un ejercicio: método sugerido según el perro + el otro método,
-    y el refuerzo recomendado del plan activo.
+    Cómo enseñar un ejercicio: el tutorial paso a paso, el refuerzo del plan y
+    si conviene usar la variante alternativa para este perro.
     """
     user_id = request.auth.payload.get('user_id')
     try:
@@ -383,15 +398,6 @@ def exercise_technique(request, dog_id, exercise_id):
     except Exercises.DoesNotExist:
         return Response({'error': 'Ejercicio no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
-    motivation = dog.energy_level or 'medio'
-    recommended = get_recommended_method(motivation)
-
-    others = [
-        serialize_technique(exercise, m)
-        for m in TrainingMethods.objects.all()
-        if not recommended or m.id != recommended.id
-    ]
-
     # Refuerzo recomendado del plan activo, si el ejercicio está en el plan.
     reinforcement_name = None
     plan = TrainingPlans.objects.filter(dog=dog, active=True).first()
@@ -402,6 +408,9 @@ def exercise_technique(request, dog_id, exercise_id):
         if pe and pe.reinforcement_type:
             reinforcement_name = pe.reinforcement_type.name
 
+    tech = ExerciseTechniques.objects.filter(exercise=exercise).first()
+    suggest_alt, alt_reason = should_suggest_alternative(dog, reinforcement_name)
+
     return Response({
         'exercise': {
             'id': str(exercise.id),
@@ -410,8 +419,9 @@ def exercise_technique(request, dog_id, exercise_id):
             'difficulty': exercise.difficulty,
             'estimated_duration': exercise.estimated_duration,
         },
-        'motivation': motivation,
+        'motivation': dog.energy_level or 'medio',
         'recommended_reinforcement': reinforcement_name,
-        'suggested_method': serialize_technique(exercise, recommended),
-        'other_methods': others,
+        'suggest_alternative': suggest_alt,
+        'alternative_reason': alt_reason,
+        'technique': serialize_technique(tech),
     })

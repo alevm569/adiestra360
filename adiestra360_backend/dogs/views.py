@@ -9,17 +9,8 @@ from training.models import (
     TrainingLevels, Exercises, ReinforcementTypes,
     TrainingPlans, TrainingPlanExercises
 )
+from training.constants import NIVEL1_SLUGS
 import uuid
-
-# Mapa de ejercicios Nivel 1 en orden de dificultad
-NIVEL1_EJERCICIOS = [
-    'siéntate',
-    'échate',
-    'llamado',
-    'quédate',
-    'lugar',
-    'obediencia_pierna',
-]
 
 # Mapa de respuestas a puntaje
 SCORE_MAP = {
@@ -62,13 +53,13 @@ def calculate_initial_level(quiz_answers, energy_level):
                    if a.get('exercise_related')}
 
     dominated = []
-    for ejercicio in NIVEL1_EJERCICIOS:
+    for ejercicio in NIVEL1_SLUGS:
         answer = dog_answers.get(ejercicio, 'Nunca')
         if SCORE_MAP.get(answer, 0) == 2:
             dominated.append(ejercicio)
 
     # Si domina todos los del nivel 1 → nivel 2, sino nivel 1
-    training_level = 2 if len(dominated) == len(NIVEL1_EJERCICIOS) else 1
+    training_level = 2 if len(dominated) == len(NIVEL1_SLUGS) else 1
     return training_level, dominated
 
 # Prioridad base de refuerzos según la energía del perro (parte de la encuesta).

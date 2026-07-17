@@ -61,37 +61,38 @@ class TrainingPlanExercises(models.Model):
         db_table = 'training_plan_exercises'
 
 
-class TrainingMethods(models.Model):
-    """
-    Métodos globales de enseñanza (p. ej. 'Señuelo', 'Moldeado').
-    Se recomienda uno u otro según la motivación (energía) del perro.
-    """
-    id = models.CharField(primary_key=True, max_length=36, default=uuid.uuid4)
-    key = models.CharField(max_length=50, unique=True)
-    name = models.CharField(max_length=100)
-    description = models.TextField(blank=True, null=True)
-    # Niveles de motivación (energy_level) para los que se recomienda este
-    # método, separados por coma. P. ej. 'alto' o 'medio,bajo'.
-    motivation_levels = models.CharField(max_length=50, blank=True, null=True)
-
-    class Meta:
-        db_table = 'training_methods'
-
-
 class ExerciseTechniques(models.Model):
     """
-    Cómo enseñar un ejercicio con un método concreto: los pasos.
-    Un ejercicio tiene una técnica por cada método global.
+    Cómo enseñar un ejercicio: un tutorial con pasos ordenados.
+
+    Cada ejercicio tiene UNA técnica. Algunos pasos traen una variante
+    alternativa equivalente (p. ej. "con golosina" en vez de la guía
+    mecánica) con la indicación de cuándo conviene usarla.
+
+    El contenido se carga desde training/content/<nivel>/*.json.
     """
     id = models.CharField(primary_key=True, max_length=36, default=uuid.uuid4)
-    exercise = models.ForeignKey(Exercises, models.CASCADE)
-    method = models.ForeignKey(TrainingMethods, models.CASCADE)
-    # Pasos de la técnica: lista de objetos {"text": str, "image": url|null}.
-    # Cada paso puede llevar una imagen (las del PDF).
+    exercise = models.OneToOneField(Exercises, models.CASCADE)
+    # Código del módulo de la teoría, p. ej. 'OB-002'.
+    code = models.CharField(max_length=20, blank=True, null=True)
+
+    objetivo = models.TextField(blank=True, null=True)
+    prerrequisito = models.TextField(blank=True, null=True)
+    duracion = models.CharField(max_length=100, blank=True, null=True)
+    frecuencia = models.CharField(max_length=100, blank=True, null=True)
+
+    competencias = models.JSONField(default=list, blank=True)
+    materiales = models.JSONField(default=list, blank=True)
+    reglas = models.JSONField(default=list, blank=True)
+
+    # Lista de pasos:
+    # {"order", "title", "text", "image",
+    #  "alternative": {"title", "text", "image", "when"} | ausente}
     steps = models.JSONField(default=list, blank=True)
-    tips = models.TextField(blank=True, null=True)
-    materials = models.TextField(blank=True, null=True)
+
+    # [{"error": str, "correccion": str}]
+    errores_comunes = models.JSONField(default=list, blank=True)
+    criterio_avanzar = models.JSONField(default=list, blank=True)
 
     class Meta:
         db_table = 'exercise_techniques'
-        unique_together = ('exercise', 'method')

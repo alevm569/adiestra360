@@ -1,13 +1,8 @@
 from django.contrib import admin
-from .models import TrainingMethods, ExerciseTechniques
-
-
-@admin.register(TrainingMethods)
-class TrainingMethodsAdmin(admin.ModelAdmin):
-    list_display = ('name', 'key', 'motivation_levels')
+from .models import ExerciseTechniques
 
 
 @admin.register(ExerciseTechniques)
 class ExerciseTechniquesAdmin(admin.ModelAdmin):
-    list_display = ('exercise', 'method')
-    list_filter = ('method',)
+    list_display = ('code', 'exercise', 'duracion', 'frecuencia')
+    search_fields = ('code', 'exercise__name')

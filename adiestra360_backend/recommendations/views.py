@@ -6,6 +6,7 @@ from .models import AiRecommendations
 from .serializers import AiRecommendationSerializer
 from dogs.models import Dogs
 from training.models import ReinforcementTypes, TrainingPlans, TrainingPlanExercises
+from training.constants import NIVEL1_SLUGS
 from training_sessions.models import TrainingSessions
 import uuid
 
@@ -13,13 +14,11 @@ SUCCESS_THRESHOLD = 0.50
 MIN_SESSIONS = 3
 INSIST_AFTER_SESSIONS = 2
 
-# Categorías de ejercicios por nivel
+# Categorías de ejercicios por nivel.
+# Nivel 1 es "global": todos sus ejercicios comparten criterio de refuerzo.
 EXERCISE_CATEGORIES = {
     'nivel_1': {
-        'global': [
-            'siéntate', 'échate', 'llamado', 'quédate',
-            'lugar', 'obediencia_pierna', 'junto'
-        ]
+        'global': list(NIVEL1_SLUGS)
     },
     'nivel_2': {
         'aprendizaje': ['rastreo', 'detección de olores', 'deteccion de olores'],

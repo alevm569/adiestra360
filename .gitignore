@@ -31,3 +31,8 @@ dist/
 # OS
 .DS_Store
 Thumbs.db
+
+# Teoría (PDFs y fotos originales): vive en Drive, no en el repo.
+# Las fotos que la app usa se recortan y se copian a
+# adiestra360_frontend/public/tecnicas/ (esas sí se versionan).
+teoria/

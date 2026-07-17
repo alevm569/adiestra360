@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Users, UserStreaks
 from .serializers import RegisterSerializer, UserSerializer, UserStreakSerializer
+from training.constants import SIENTATE, ECHATE, AQUI, QUEDATE, LUGAR, JUNTO
 import uuid
 
 def get_tokens_for_user(user):
@@ -105,42 +106,42 @@ def quiz_questions(request):
             'category': 'dog_knowledge',
             'question': '¿Cuando llamas a tu perro por su nombre, viene hacia ti?',
             'options': ['Siempre', 'A veces', 'Casi nunca', 'Nunca'],
-            'exercise_related': 'llamado'
+            'exercise_related': AQUI
         },
         {
             'id': 2,
             'category': 'dog_knowledge',
             'question': '¿Tu perro se sienta cuando se lo pides?',
             'options': ['Siempre', 'A veces', 'Casi nunca', 'Nunca'],
-            'exercise_related': 'siéntate'
+            'exercise_related': SIENTATE
         },
         {
             'id': 3,
             'category': 'dog_knowledge',
             'question': '¿Tu perro se echa o se acuesta cuando se lo indicas?',
             'options': ['Siempre', 'A veces', 'Casi nunca', 'Nunca'],
-            'exercise_related': 'échate'
+            'exercise_related': ECHATE
         },
         {
             'id': 4,
             'category': 'dog_knowledge',
             'question': '¿Tu perro puede quedarse quieto en un lugar sin moverse por al menos 10 segundos?',
             'options': ['Siempre', 'A veces', 'Casi nunca', 'Nunca'],
-            'exercise_related': 'quédate'
+            'exercise_related': QUEDATE
         },
         {
             'id': 5,
             'category': 'dog_knowledge',
             'question': '¿Tu perro camina a tu lado sin jalarte la correa?',
             'options': ['Siempre', 'A veces', 'Casi nunca', 'Nunca'],
-            'exercise_related': 'obediencia_pierna'
+            'exercise_related': JUNTO
         },
         {
             'id': 6,
             'category': 'dog_knowledge',
             'question': '¿Tu perro va a su lugar o cama cuando se lo indicas?',
             'options': ['Siempre', 'A veces', 'Casi nunca', 'Nunca'],
-            'exercise_related': 'lugar'
+            'exercise_related': LUGAR
         },
         {
             'id': 7,

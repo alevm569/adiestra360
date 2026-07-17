@@ -11,6 +11,7 @@ from rest_framework.test import APIClient
 
 from users.models import Users, UserStreaks
 from dogs.models import Dogs
+from training.constants import NIVEL1_NAMES, SIENTATE, ECHATE, AQUI
 from training.models import (
     TrainingLevels, Exercises, ReinforcementTypes,
     TrainingPlans, TrainingPlanExercises,
@@ -36,10 +37,11 @@ def create_catalog():
     )
 
     exercises = {}
+    # Los nombres salen de training.constants: renombrar allí basta.
     lvl1_exercises = [
-        ('ex-001', 'sientate', 'Siéntate', 1),
-        ('ex-002', 'echate', 'Échate', 2),
-        ('ex-003', 'llamado', 'Llamado', 3),
+        ('ex-001', 'sientate', NIVEL1_NAMES[SIENTATE], 1),
+        ('ex-002', 'echate', NIVEL1_NAMES[ECHATE], 2),
+        ('ex-003', 'aqui', NIVEL1_NAMES[AQUI], 3),
     ]
     lvl2_exercises = [
         ('ex-101', 'rastreo', 'Rastreo', 1),

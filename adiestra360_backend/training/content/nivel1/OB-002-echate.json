@@ -1,0 +1,93 @@
+{
+  "id": "OB-002",
+  "exercise": "échate",
+  "nombre": "Échate",
+  "categoria": "Obediencia básica",
+  "nivel": "Principiante",
+  "prerrequisito": "Dominar Siéntate (OB-001)",
+  "objetivo": "Enseñar a la perra a adoptar la posición de echado de forma controlada mediante una guía mecánica y, posteriormente, con una guía utilizando una golosina.",
+  "duracion": "3–5 minutos por sesión",
+  "frecuencia": "2 o 3 sesiones diarias",
+
+  "competencias": [
+    "Guiar correctamente el movimiento hacia el echado.",
+    "Identificar cuándo la perra realmente está echada y no simplemente inclinada.",
+    "Reforzar únicamente la posición correcta.",
+    "Comprender cómo disminuir progresivamente las ayudas físicas."
+  ],
+
+  "materiales": [
+    "Collar plano",
+    "Correa negra",
+    "Premios blandos",
+    "Riñonera",
+    "Parque tranquilo"
+  ],
+
+  "reglas": [
+    "La perra inicia el ejercicio sentada.",
+    "Pronunciar la orden una sola vez.",
+    "Nunca empujar con fuerza hacia el suelo.",
+    "Nunca arrastrar a la perra.",
+    "Recompensar únicamente cuando el pecho y los codos estén correctamente apoyados."
+  ],
+
+  "steps": [
+    {
+      "order": 1,
+      "title": "Posición inicial",
+      "text": "Coloca a la perra en un sentado correcto antes de iniciar el ejercicio. Se comienza desde una posición estable.",
+      "image": "/tecnicas/OB-002-01.png"
+    },
+    {
+      "order": 2,
+      "title": "Guía mecánica",
+      "text": "Pronuncia una sola vez: «Échate». Mantén un tono de voz tranquilo y espera uno o dos segundo, con una mano controla suavemente el collar mientras la otra guía el movimiento descendente hacia el suelo, usando la pierna como obstáculo.",
+      "image": "/tecnicas/OB-002-02.png",
+      "alternative": {
+        "title": "Con golosina",
+        "text": "Sin cadena: utiliza un premio para atraer lentamente el hocico hacia abajo y ligeramente hacia delante. La trayectoria de la mano debe favorecer que la perra baje el pecho hasta apoyar completamente el cuerpo.",
+        "image": "/tecnicas/OB-002-04.png",
+        "when": "Si la perra se motiva más con comida o si no usas cadena."
+      }
+    },
+    {
+      "order": 3,
+      "title": "Verificar la posición",
+      "text": "La perra debe apoyar completamente el pecho, apoyar ambos codos, mantener las patas delanteras extendidas y la cabeza relajada. No debe quedar medio sentada.",
+      "image": "/tecnicas/OB-002-03.png"
+    },
+    {
+      "order": 4,
+      "title": "Reforzar",
+      "text": "En cuanto la posición sea correcta, felicita y entrega el premio inmediatamente. El premio debe llegar mientras la perra continúa echada.",
+      "image": "/tecnicas/OB-002-05.png"
+    }
+  ],
+
+  "errores_comunes": [
+    {
+      "error": "La perra mantiene los cuartos traseros elevados.",
+      "correccion": "Esperar a que apoye completamente el pecho."
+    },
+    {
+      "error": "Empujar excesivamente.",
+      "correccion": "Guiar, no presionar."
+    },
+    {
+      "error": "Premiar cuando todavía está sentada.",
+      "correccion": "Esperar al echado completo."
+    },
+    {
+      "error": "Mover demasiado rápido la golosina.",
+      "correccion": "La trayectoria debe ser lenta para permitir que la perra siga el movimiento."
+    }
+  ],
+
+  "criterio_avanzar": [
+    "Responde a la orden verbal.",
+    "Se echa completamente.",
+    "Mantiene la posición durante algunos segundos.",
+    "Ya no necesita ayuda física."
+  ]
+}

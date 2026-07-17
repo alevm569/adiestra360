@@ -6,6 +6,9 @@ from training.models import (
     TrainingLevels, Exercises, ReinforcementTypes,
     TrainingPlans, TrainingPlanExercises
 )
+from training.constants import (
+    NIVEL1, NIVEL1_SLUGS, SIENTATE, ECHATE, AQUI, QUEDATE, LUGAR, JUNTO,
+)
 import uuid
 
 
@@ -17,18 +20,11 @@ def create_base_catalog():
     lvl1 = TrainingLevels.objects.create(id='lvl-001', name='Nivel 1', description='Obediencia básica')
     lvl2 = TrainingLevels.objects.create(id='lvl-002', name='Nivel 2', description='Obediencia intermedia')
 
-    exercises_lvl1 = [
-        ('ex-001', 'Siéntate', 1),
-        ('ex-002', 'Échate', 2),
-        ('ex-003', 'Llamado', 3),
-        ('ex-004', 'Quédate', 4),
-        ('ex-005', 'Lugar', 5),
-        ('ex-006', 'Obediencia a la pierna', 6),
-    ]
-    for ex_id, name, diff in exercises_lvl1:
+    # Los 6 ejercicios de Nivel 1 salen de training.constants, en su orden.
+    for i, (_slug, name) in enumerate(NIVEL1, start=1):
         Exercises.objects.create(
-            id=ex_id, level=lvl1, name=name,
-            description='desc', difficulty=diff, estimated_duration=10
+            id=f'ex-{i:03d}', level=lvl1, name=name,
+            description='desc', difficulty=i, estimated_duration=10
         )
 
     reinforcements = [
@@ -58,12 +54,12 @@ class CreateDogProfileTests(TestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.token}')
 
         self.quiz_answers = [
-            {'exercise_related': 'llamado', 'answer': 'Siempre'},
-            {'exercise_related': 'siéntate', 'answer': 'Siempre'},
-            {'exercise_related': 'échate', 'answer': 'A veces'},
-            {'exercise_related': 'quédate', 'answer': 'Casi nunca'},
-            {'exercise_related': 'obediencia_pierna', 'answer': 'Nunca'},
-            {'exercise_related': 'lugar', 'answer': 'Nunca'},
+            {'exercise_related': AQUI, 'answer': 'Siempre'},
+            {'exercise_related': SIENTATE, 'answer': 'Siempre'},
+            {'exercise_related': ECHATE, 'answer': 'A veces'},
+            {'exercise_related': QUEDATE, 'answer': 'Casi nunca'},
+            {'exercise_related': JUNTO, 'answer': 'Nunca'},
+            {'exercise_related': LUGAR, 'answer': 'Nunca'},
             {'reinforcement_related': 'pelota', 'answer': 'Mucho'},
             {'reinforcement_related': 'comida', 'answer': 'Algo'},
             {'reinforcement_related': 'caricias', 'answer': 'Poco'},
@@ -85,8 +81,8 @@ class CreateDogProfileTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['training_level'], 1)
         self.assertEqual(response.data['initial_reinforcement'], 'pelota')
-        self.assertIn('siéntate', response.data['dominated_exercises'])
-        self.assertIn('llamado', response.data['dominated_exercises'])
+        self.assertIn(SIENTATE, response.data['dominated_exercises'])
+        self.assertIn(AQUI, response.data['dominated_exercises'])
 
     def test_create_dog_generates_plan(self):
         data = {
@@ -122,7 +118,7 @@ class CreateDogProfileTests(TestCase):
     def test_dog_with_all_exercises_known_goes_to_level2(self):
         full_knowledge_answers = [
             {'exercise_related': ex, 'answer': 'Siempre'}
-            for ex in ['siéntate', 'échate', 'llamado', 'quédate', 'lugar', 'obediencia_pierna']
+            for ex in NIVEL1_SLUGS
         ]
         data = {
             'dog': {'name': 'Rocky', 'breed': 'Labrador', 'energy_level': 'medio'},
@@ -149,7 +145,7 @@ class ListAndDetailDogTests(TestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.token}')
 
         quiz_answers = [
-            {'exercise_related': 'siéntate', 'answer': 'Siempre'},
+            {'exercise_related': SIENTATE, 'answer': 'Siempre'},
             {'reinforcement_related': 'comida', 'answer': 'Mucho'},
         ]
         create_response = self.client.post('/api/dogs/create/', {
@@ -231,7 +227,7 @@ class CrossUserAccessTests(TestCase):
         create_resp = self.client.post('/api/dogs/create/', {
             'dog': {'name': 'Luna', 'breed': 'Cocker', 'energy_level': 'medio'},
             'quiz_answers': [
-                {'exercise_related': 'siéntate', 'answer': 'Siempre'},
+                {'exercise_related': SIENTATE, 'answer': 'Siempre'},
                 {'reinforcement_related': 'comida', 'answer': 'Mucho'},
             ]
         }, format='json')
