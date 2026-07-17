@@ -14,7 +14,7 @@ CONTENT_DIR = Path(__file__).resolve().parents[2] / 'content'
 
 # Campos del JSON que se copian tal cual al modelo.
 FIELDS = [
-    'code', 'objetivo', 'prerrequisito', 'duracion', 'frecuencia',
+    'objetivo', 'prerrequisito', 'duracion', 'frecuencia',
     'competencias', 'materiales', 'reglas', 'steps',
     'errores_comunes', 'criterio_avanzar',
 ]
@@ -54,6 +54,8 @@ class Command(BaseCommand):
                 continue
 
             defaults = {k: data.get(k) for k in FIELDS if k in data}
+            # El código del módulo viene como "id" en el JSON (p. ej. OB-002).
+            defaults['code'] = data.get('code') or data.get('id')
             ExerciseTechniques.objects.update_or_create(
                 exercise=exercise, defaults=defaults
             )

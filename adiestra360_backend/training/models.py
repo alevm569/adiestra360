@@ -1,5 +1,6 @@
 import uuid
 from django.db import models
+from .fields import CharUUIDField
 from dogs.models import Dogs
 
 class TrainingLevels(models.Model):
@@ -11,7 +12,8 @@ class TrainingLevels(models.Model):
         db_table = 'training_levels'
 
 class Exercises(models.Model):
-    id = models.CharField(primary_key=True, max_length=36, default=uuid.uuid4)
+    # CHAR(36) para calzar con el esquema real (ver training/fields.py).
+    id = CharUUIDField(primary_key=True, max_length=36, default=uuid.uuid4)
     level = models.ForeignKey(TrainingLevels, models.CASCADE)
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
@@ -71,7 +73,7 @@ class ExerciseTechniques(models.Model):
 
     El contenido se carga desde training/content/<nivel>/*.json.
     """
-    id = models.CharField(primary_key=True, max_length=36, default=uuid.uuid4)
+    id = CharUUIDField(primary_key=True, max_length=36, default=uuid.uuid4)
     exercise = models.OneToOneField(Exercises, models.CASCADE)
     # Código del módulo de la teoría, p. ej. 'OB-002'.
     code = models.CharField(max_length=20, blank=True, null=True)
