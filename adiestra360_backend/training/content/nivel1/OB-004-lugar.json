@@ -1,0 +1,100 @@
+{
+  "id": "OB-004",
+  "exercise": "lugar",
+  "nombre": "Lugar",
+  "categoria": "Obediencia básica",
+  "nivel": "Principiante",
+  "prerrequisito": "Dominar Siéntate (OB-001) y Échate (OB-002).",
+  "objetivo": "Enseñar al perro a desplazarse hasta una cama o plataforma designada cuando escuche la orden «Lugar», comprendiendo que ese espacio es donde debe permanecer echado hasta recibir una nueva instrucción.",
+  "duracion": "3–5 minutos por sesión",
+  "frecuencia": "2 o 3 sesiones al día",
+
+  "competencias": [
+    "Asociación entre una orden verbal y una ubicación específica.",
+    "Seguimiento del guía.",
+    "Control corporal.",
+    "Permanencia en un lugar."
+  ],
+
+  "materiales": [
+    "Collar",
+    "Correa",
+    "Cama o plataforma",
+    "Premios",
+    "Riñonera"
+  ],
+
+  "reglas": [
+    "El perro inicia siempre desde la posición base: sentado a tu lado izquierdo.",
+    "La correa debe permanecer relajada antes de iniciar el ejercicio.",
+    "Pronunciar la orden una sola vez.",
+    "Señalar claramente el lugar antes de iniciar el desplazamiento.",
+    "El premio siempre se entrega cuando el perro ya está correctamente echado en su lugar."
+  ],
+
+  "steps": [
+    {
+      "order": 1,
+      "title": "Posición base",
+      "text": "Comienza con el perro sentado a tu lado izquierdo, con el cuerpo paralelo al tuyo y la correa sostenida sin tensión en la mano izquierda. Se parte de una posición conocida antes de iniciar el ejercicio.",
+      "image": "/tecnicas/OB-004-01.png"
+    },
+    {
+      "order": 2,
+      "title": "Dar la orden y señalar",
+      "text": "Pronuncia claramente «Lugar» una sola vez y, al mismo tiempo, señala con la mano derecha la cama o plataforma donde quieres que termine el ejercicio. La señal debe ser clara y breve.",
+      "image": "/tecnicas/OB-004-02.png"
+    },
+    {
+      "order": 3,
+      "title": "Iniciar el desplazamiento",
+      "text": "Inmediatamente después de la orden, cambia la correa a la mano derecha y desplázate con paso rápido hacia la cama, invitando al perro a seguirte. La intención es generar un movimiento dinámico que facilite llegar al lugar señalado.",
+      "image": "/tecnicas/OB-004-03.png"
+    },
+    {
+      "order": 4,
+      "title": "Llegar al lugar",
+      "text": "Al llegar a la cama o plataforma, vuelve a colocar al perro a tu lado izquierdo. Debe recuperar la alineación (cuerpo paralelo a ti) antes de pedir el siguiente comportamiento.",
+      "image": "/tecnicas/OB-004-04.png"
+    },
+    {
+      "order": 5,
+      "title": "Solicitar el echado",
+      "text": "Pronuncia «Échate». El perro debe acostarse sobre la cama manteniendo la alineación contigo: cuerpo paralelo y cabeza al frente. Permite que permanezca echado unos segundos: ese espacio empieza a convertirse en «su lugar».",
+      "image": "/tecnicas/OB-004-05.png"
+    },
+    {
+      "order": 6,
+      "title": "Reforzar",
+      "text": "Entrega el premio con la mano izquierda mientras el perro continúa echado en su lugar, junto a tu lado izquierdo. La recompensa llega solo cuando el ejercicio está completamente terminado.",
+      "image": "/tecnicas/OB-004-06.png"
+    }
+  ],
+
+  "errores_comunes": [
+    {
+      "error": "No señalar claramente el lugar.",
+      "correccion": "La señal con la mano derecha debe acompañar siempre la orden verbal durante las primeras sesiones."
+    },
+    {
+      "error": "Comenzar a caminar antes de pronunciar la orden.",
+      "correccion": "Primero la orden, después el movimiento."
+    },
+    {
+      "error": "Premiar antes de que el perro se eche.",
+      "correccion": "La recompensa aparece únicamente cuando el ejercicio está completamente terminado."
+    },
+    {
+      "error": "Retirar de inmediato al perro del lugar.",
+      "correccion": "Permite que permanezca unos segundos para fortalecer la asociación con el espacio."
+    }
+  ],
+
+  "criterio_avanzar": [
+    "Responde a la orden «Lugar».",
+    "Se dirige hacia la cama sin resistencia.",
+    "Adopta correctamente la posición de echado.",
+    "Permanece tranquilo en ese lugar.",
+    "Empieza a anticipar el destino al escuchar la orden."
+  ]
+}

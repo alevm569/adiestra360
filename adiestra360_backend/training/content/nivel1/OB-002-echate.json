@@ -5,29 +5,23 @@
   "categoria": "Obediencia básica",
   "nivel": "Principiante",
   "prerrequisito": "Dominar Siéntate (OB-001)",
-  "objetivo": "Enseñar a la perra a adoptar la posición de echado de forma controlada mediante una guía mecánica y, posteriormente, con una guía utilizando una golosina.",
+  "objetivo": "Enseñar al perro a adoptar la posición de echado de forma controlada mediante una guía mecánica y, posteriormente, con una guía utilizando una golosina.",
   "duracion": "3–5 minutos por sesión",
   "frecuencia": "2 o 3 sesiones diarias",
 
   "competencias": [
     "Guiar correctamente el movimiento hacia el echado.",
-    "Identificar cuándo la perra realmente está echada y no simplemente inclinada.",
-    "Reforzar únicamente la posición correcta.",
-    "Comprender cómo disminuir progresivamente las ayudas físicas."
+    "Identificar cuándo el perro realmente está echado y no simplemente inclinado.",
+    "Reforzar únicamente la posición correcta."
   ],
 
-  "materiales": [
-    "Collar",
-    "Correa",
-    "Premios blandos",
-    "Riñonera"
-  ],
+  "materiales": ["Collar", "Correa", "Premios blandos", "Riñonera"],
 
   "reglas": [
-    "La perra inicia el ejercicio sentada.",
+    "El perro inicia el ejercicio sentado.",
     "Pronunciar la orden una sola vez.",
     "Nunca empujar con fuerza hacia el suelo.",
-    "Nunca arrastrar a la perra.",
+    "Nunca arrastrar al perro.",
     "Recompensar únicamente cuando el pecho y los codos estén correctamente apoyados."
   ],
 
@@ -35,7 +29,7 @@
     {
       "order": 1,
       "title": "Posición inicial",
-      "text": "Coloca a la perra en un sentado correcto antes de iniciar el ejercicio. Se comienza desde una posición estable.",
+      "text": "Coloca al perro en un sentado correcto antes de iniciar el ejercicio. Se comienza desde una posición estable.",
       "image": "/tecnicas/OB-002-01.png"
     },
     {
@@ -45,28 +39,28 @@
       "image": "/tecnicas/OB-002-02.png",
       "alternative": {
         "title": "Con golosina",
-        "text": "Sin cadena: utiliza un premio para atraer lentamente el hocico hacia abajo y ligeramente hacia delante. La trayectoria de la mano debe favorecer que la perra baje el pecho hasta apoyar completamente el cuerpo.",
+        "text": "Sin cadena: utiliza un premio para atraer lentamente el hocico hacia abajo y ligeramente hacia delante. La trayectoria de la mano debe favorecer que el perro baje el pecho hasta apoyar completamente el cuerpo.",
         "image": "/tecnicas/OB-002-04.png",
-        "when": "Si la perra se motiva más con comida o si no usas cadena."
+        "when": "Si el perro se motiva más con comida o si no usas cadena."
       }
     },
     {
       "order": 3,
       "title": "Verificar la posición",
-      "text": "La perra debe apoyar completamente el pecho, apoyar ambos codos, mantener las patas delanteras extendidas y la cabeza relajada. No debe quedar medio sentada.",
+      "text": "el perro debe apoyar completamente el pecho, apoyar ambos codos, mantener las patas delanteras extendidas y la cabeza relajada. No debe quedar medio sentado.",
       "image": "/tecnicas/OB-002-03.png"
     },
     {
       "order": 4,
       "title": "Reforzar",
-      "text": "En cuanto la posición sea correcta, felicita y entrega el premio inmediatamente. El premio debe llegar mientras la perra continúa echada.",
+      "text": "En cuanto la posición sea correcta, felicita y entrega el premio inmediatamente. El premio debe llegar mientras el perro continúa echado.",
       "image": "/tecnicas/OB-002-05.png"
     }
   ],
 
   "errores_comunes": [
     {
-      "error": "La perra mantiene los cuartos traseros elevados.",
+      "error": "el perro mantiene los cuartos traseros elevados.",
       "correccion": "Esperar a que apoye completamente el pecho."
     },
     {
@@ -74,12 +68,12 @@
       "correccion": "Guiar, no presionar."
     },
     {
-      "error": "Premiar cuando todavía está sentada.",
+      "error": "Premiar cuando todavía está sentado.",
       "correccion": "Esperar al echado completo."
     },
     {
       "error": "Mover demasiado rápido la golosina.",
-      "correccion": "La trayectoria debe ser lenta para permitir que la perra siga el movimiento."
+      "correccion": "La trayectoria debe ser lenta para permitir que el perro siga el movimiento."
     }
   ],
 

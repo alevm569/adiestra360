@@ -1,0 +1,89 @@
+{
+  "id": "OB-003",
+  "exercise": "quédate",
+  "nombre": "Quédate",
+  "categoria": "Obediencia básica",
+  "nivel": "Principiante",
+  "prerrequisito": "Dominar Échate (OB-002). Siéntate (OB-001) es opcional, para practicar desde otra posición.",
+  "objetivo": "Enseñar al perro a mantener una posición sin desplazarse hasta recibir la señal de liberación, desarrollando autocontrol, concentración y paciencia. El éxito depende de tres variables —duración, distancia y distracciones— y nunca deben aumentarse las tres al mismo tiempo.",
+  "duracion": "3–5 minutos por sesión",
+  "frecuencia": "2 o 3 sesiones al día",
+
+  "competencias": [
+    "Introducir correctamente la orden «Quédate».",
+    "Mantener la correa sin tensión.",
+    "Construir duración antes que distancia.",
+    "Aumentar progresivamente la dificultad.",
+    "Liberar correctamente al perro al finalizar el ejercicio."
+  ],
+
+  "materiales": ["Collar", "Correa", "Premios", "Riñonera"],
+
+  "reglas": [
+    "El perro debe iniciar sentado correctamente.",
+    "Pronunciar la orden una sola vez.",
+    "Mantener un tono de voz tranquilo.",
+    "Nunca tensar la correa.",
+    "Siempre regresar junto al perro antes de premiar.",
+    "Finalizar con una palabra de liberación (p. ej. «Muy bien» o «Libre»), usada de forma consistente."
+  ],
+
+  "steps": [
+    {
+      "order": 1,
+      "title": "Posición inicial",
+      "text": "Coloca al perro en posición échate correcto y espera unos segundos hasta que esté tranquilo. Se prepara una posición estable antes de introducir el ejercicio.",
+      "image": "/tecnicas/OB-003-01.png"
+    },
+    {
+      "order": 2,
+      "title": "Dar la orden",
+      "text": "Mira al perro y pronuncia claramente «Quédate», una sola vez, acompañando con la seña de mano abierta al frente.",
+      "image": "/tecnicas/OB-003-02.png"
+    },
+    {
+      "order": 3,
+      "title": "Primer nivel: paso lateral y paso alfrente",
+      "text": "Inica desplazándote lateralmente en relación al perro, reicorpórate y premia. Seguido, da un paso hacia alfrente con la correa completamente relajada. Permanece unos segundos observando que el perro no cambie de posición; después vuelve junto a él y premia. (Empezar de lado reduce que el perro crea que el ejercicio es seguirte.)",
+      "image": "/tecnicas/OB-003-03.png"
+    },
+    {
+      "order": 4,
+      "title": "Aumentar duración, luego distancia",
+      "text": "Cuando mantenga la posición con éxito, aumenta primero el TIEMPO antes de regresar a premiar (sin sumar distancia). Ya consolidado, da un único paso al frente y ve alejándote de forma progresiva (1, 2, 3, 5 pasos). Recompensa solo si permaneció inmóvil. No avances de nivel hasta que el anterior sea consistente.",
+      "image": "/tecnicas/OB-003-04.png"
+    },
+    {
+      "order": 5,
+      "title": "Finalizar correctamente",
+      "text": "Vuelve siempre junto al perro antes de entregar el premio. Después usa la palabra de liberación: solo entonces podrá levantarse.",
+      "image": "/tecnicas/OB-003-06.png"
+    }
+  ],
+
+  "errores_comunes": [
+    {
+      "error": "Alejarse demasiado rápido.",
+      "correccion": "Trabajar primero con un paso lateral y luego con un solo paso al frente."
+    },
+    {
+      "error": "Mantener la correa tensa.",
+      "correccion": "La correa debe permanecer floja durante todo el ejercicio."
+    },
+    {
+      "error": "Premiar lejos del perro.",
+      "correccion": "Siempre regresar hasta él antes de entregar el premio."
+    },
+    {
+      "error": "Aumentar distancia y tiempo al mismo tiempo.",
+      "correccion": "Modificar únicamente una variable por sesión."
+    }
+  ],
+
+  "criterio_avanzar": [
+    "Mantiene la posición hasta la señal de liberación.",
+    "Permanece inmóvil mientras la entrenadora se aleja unos pasos.",
+    "No rompe la posición al aumentar la duración.",
+    "Espera a la palabra de liberación antes de levantarse."
+  ]
+}

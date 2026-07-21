@@ -1,0 +1,84 @@
+{
+  "id": "OB-005",
+  "exercise": "aquí",
+  "nombre": "Aquí",
+  "categoria": "Obediencia básica",
+  "nivel": "Principiante",
+  "prerrequisito": "Dominar Siéntate (OB-001), Échate (OB-002) y Quédate (OB-003).",
+  "objetivo": "Enseñar al perro a acudir de inmediato hacia el guía cuando escuche la orden «Aquí», terminando siempre sentado y alineado junto al lado izquierdo (la posición base).",
+  "duracion": "3–5 minutos por sesión",
+  "frecuencia": "2 o 3 sesiones al día",
+
+  "competencias": [
+    "Respuesta al llamado.",
+    "Atención hacia el guía.",
+    "Desplazamiento controlado.",
+    "Reconstrucción de la posición base."
+  ],
+
+  "materiales": ["Collar", "Correa", "Premios", "Riñonera"],
+
+  "reglas": [
+    "El perro inicia el ejercicio quieto.",
+    "La orden verbal se pronuncia una sola vez.",
+    "El premio se entrega solo cuando el perro ya reconstruyó la posición base.",
+    "Mantener siempre una actitud positiva."
+  ],
+
+  "steps": [
+    {
+      "order": 1,
+      "title": "Preparación",
+      "text": "Coloca al perro frente a ti en orden échate, a una distancia corta. El perro permanece quieto, la correa relajada y tú mantienes contacto visual. Se prepara un llamado sencillo y exitoso.",
+      "image": "/tecnicas/OB-005-01.png"
+    },
+    {
+      "order": 2,
+      "title": "Dar la orden",
+      "text": "Pronuncia claramente «Aquí» una sola vez. Puedes acompañar la llamada con un gesto amigable de la mano derecha para invitarlo a venir.",
+      "image": "/tecnicas/OB-005-02.png"
+    },
+    {
+      "order": 3,
+      "title": "Invitar al movimiento",
+      "text": "Retrocede ligeramente mientras animas al perro a desplazarse hacia ti. El movimiento debe resultar atractivo, nunca intimidante.",
+      "image": "/tecnicas/OB-005-03.png"
+    },
+    {
+      "order": 4,
+      "title": "Llegada",
+      "text": "Cuando el perro llegue hasta ti, premia y pronunca «Junto» para que el perro se incorpore correctamente a la posición base.",
+      "image": "/tecnicas/OB-005-04.png"
+    },
+    {
+      "order": 5,
+      "title": "Reconstruir la posición base",
+      "text": "Guía suavemente al perro hasta que quede sentado junto a tu lado izquierdo, con el cuerpo paralelo, la pata delantera derecha alineada con tu pierna izquierda y la correa relajada.",
+      "image": "/tecnicas/OB-005-05.png"
+    },
+    {
+      "order": 6,
+      "title": "Reforzar",
+      "text": "Una vez reconstruida correctamente la posición base, entrega el premio de inmediato. El refuerzo debe producirse exactamente cuando la posición final es correcta.",
+      "image": "/tecnicas/OB-005-06.png"
+    }
+  ],
+
+  "errores_comunes": [
+    {
+      "error": "Repetir continuamente la orden «Aquí».",
+      "correccion": "Pronuncia la orden una sola vez."
+    },
+    {
+      "error": "Permitir que el perro quede delante de ti.",
+      "correccion": "Siempre finalizar al lado izquierdo."
+    }
+  ],
+
+  "criterio_avanzar": [
+    "Responde de inmediato al llamado.",
+    "Acude con entusiasmo.",
+    "Reconstruye correctamente la posición base.",
+    "Espera con tranquilidad la siguiente instrucción."
+  ]
+}
