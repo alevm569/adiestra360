@@ -122,7 +122,7 @@ export function ExerciseTechniquePage() {
               {tech.criterio_avanzar.length > 0 && (
                 <BulletCard
                   icon="verified"
-                  title="Criterios para superarlo"
+                  title="Sabrás que lo domina cuando…"
                   items={tech.criterio_avanzar}
                   className="mb-4"
                 />
