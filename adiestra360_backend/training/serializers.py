@@ -1,5 +1,8 @@
 from rest_framework import serializers
-from .models import TrainingLevels, Exercises, ReinforcementTypes, TrainingPlans, TrainingPlanExercises
+from .models import (
+    TrainingLevels, Exercises, ReinforcementTypes,
+    TrainingPlans, TrainingPlanExercises, ExerciseTechniques
+)
 import uuid
 
 class TrainingLevelSerializer(serializers.ModelSerializer):
@@ -22,10 +25,20 @@ class ReinforcementTypeSerializer(serializers.ModelSerializer):
 class TrainingPlanExerciseSerializer(serializers.ModelSerializer):
     exercise = ExerciseSerializer(read_only=True)
     reinforcement_type = ReinforcementTypeSerializer(read_only=True)
+    # Criterios de avance del ejercicio (checklist de la sesión de hoy),
+    # ordenados por relevancia. Vacío si aún no hay técnica cargada.
+    criterio_avanzar = serializers.SerializerMethodField()
 
     class Meta:
         model = TrainingPlanExercises
-        fields = ['id', 'exercise', 'reinforcement_type', 'order_number', 'dominated', 'active']
+        fields = [
+            'id', 'exercise', 'reinforcement_type', 'order_number',
+            'dominated', 'active', 'criterio_avanzar'
+        ]
+
+    def get_criterio_avanzar(self, obj):
+        tech = ExerciseTechniques.objects.filter(exercise=obj.exercise).first()
+        return (tech.criterio_avanzar or []) if tech else []
 
 class TrainingPlanSerializer(serializers.ModelSerializer):
     exercises = TrainingPlanExerciseSerializer(

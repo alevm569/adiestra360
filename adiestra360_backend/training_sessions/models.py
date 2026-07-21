@@ -12,6 +12,12 @@ class TrainingSessions(models.Model):
     duration_seconds = models.IntegerField(blank=True, null=True)
     repetitions = models.IntegerField(blank=True, null=True)
     success = models.BooleanField(blank=True, null=True)
+    # Checklist de criterio_avanzar marcado en la sesión: cuántos criterios
+    # cumplió el perro (criteria_met) de un total (criteria_total). El resultado
+    # (reforzar/bien/excelente) y `success` se derivan de estos. Nulos en
+    # sesiones antiguas (previas al checklist), que se evalúan solo por `success`.
+    criteria_met = models.IntegerField(blank=True, null=True)
+    criteria_total = models.IntegerField(blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
     session_date = models.DateTimeField(auto_now_add=True)
 

@@ -131,6 +131,8 @@ export interface PlanExerciseItem {
   order_number: number | null
   dominated: boolean
   active: boolean
+  /** Criterios de avance (checklist de la sesión), ordenados por relevancia. */
+  criterio_avanzar: string[]
 }
 
 export interface ActivePlan {

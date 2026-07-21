@@ -1,8 +1,9 @@
 import type { ReactNode } from "react"
-import { Navigate, useNavigate, useParams } from "react-router-dom"
+import { Link, Navigate, useNavigate, useParams } from "react-router-dom"
 import { cn } from "@/lib/utils"
 import { cap, reinforcementIcon } from "@/lib/exercise"
 import { Icon } from "@/components/Icon"
+import { Button } from "@/components/ui/button"
 import { useDogStore } from "@/stores/dogStore"
 import { useExerciseTechnique } from "./api"
 import type { StepAlternative, TechniqueStep } from "@/types"
@@ -121,14 +122,26 @@ export function ExerciseTechniquePage() {
               {tech.criterio_avanzar.length > 0 && (
                 <BulletCard
                   icon="verified"
-                  title="Listo para avanzar cuando…"
+                  title="Criterios para superarlo"
                   items={tech.criterio_avanzar}
-                  className="mb-6"
+                  className="mb-4"
                 />
               )}
             </>
           )}
         </>
+      )}
+
+      {/* CTA fijo: enlaza el tutorial con el registro de la sesión del día. */}
+      {data && (
+        <div className="sticky bottom-0 -mx-5 mt-2 border-t border-border bg-background/95 px-5 py-3 pb-safe backdrop-blur">
+          <Button asChild className="h-12 w-full rounded-xl text-base font-extrabold">
+            <Link to="/sesion">
+              <Icon name="checklist" className="text-xl" />
+              Registrar sesión de hoy
+            </Link>
+          </Button>
+        </div>
       )}
     </div>
   )

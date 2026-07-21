@@ -131,7 +131,7 @@ def dashboard(request, dog_id):
     last_session = sessions.order_by('-session_date').first()
 
     # ── Progreso por ejercicio ──
-    from training.models import Exercises
+    from training.views import check_exercise_mastered
     exercise_progress = []
     if plan:
         plan_exercises = TrainingPlanExercises.objects.filter(
@@ -146,7 +146,11 @@ def dashboard(request, dog_id):
                 'exercise_name': pe.exercise.name,
                 'total_sessions': ex_total,
                 'success_rate': round((ex_success / ex_total) * 100, 1) if ex_total > 0 else 0,
-                'mastered': ex_total >= 3 and (ex_success / ex_total) >= 0.8 if ex_total >= 3 else False
+                # Misma regla que el desbloqueo: última sesión Excelente +
+                # constancia (o 1 Excelente si el quiz ya lo marcó dominado).
+                'mastered': check_exercise_mastered(
+                    dog.id, pe.exercise.id, dominated=pe.dominated
+                ),
             })
 
     # ── Racha ──

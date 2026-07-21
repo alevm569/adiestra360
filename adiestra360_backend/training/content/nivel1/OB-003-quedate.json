@@ -81,9 +81,9 @@
   ],
 
   "criterio_avanzar": [
-    "Mantiene la posición hasta la señal de liberación.",
     "Permanece inmóvil mientras la entrenadora se aleja unos pasos.",
     "No rompe la posición al aumentar la duración.",
+    "Mantiene la posición hasta la señal de liberación.",
     "Espera a la palabra de liberación antes de levantarse."
   ]
 }

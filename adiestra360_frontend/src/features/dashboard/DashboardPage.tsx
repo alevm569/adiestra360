@@ -296,17 +296,31 @@ function DashboardContent({
               </span>
             </>
           )
-          // Los superados no llevan a sesión; el resto sí.
+          // Tocar un ejercicio abre su tutorial (cómo enseñarlo); desde ahí
+          // se registra la sesión. Los superados no aparecen en "pending".
           return st.done ? (
             <div key={e.id} className={rowClass}>
               {inner}
             </div>
           ) : (
-            <Link key={e.id} to="/sesion" className={rowClass}>
+            <Link key={e.id} to={`/ejercicio/${e.exercise.id}`} className={rowClass}>
               {inner}
             </Link>
           )
         })
+      )}
+
+      {/* Registrar la sesión del día (acceso directo, sin pasar por el tutorial) */}
+      {pending.length > 0 && (
+        <Button
+          asChild
+          className="mt-3 h-12 w-full rounded-xl text-base font-extrabold"
+        >
+          <Link to="/sesion">
+            <Icon name="check_circle" className="text-xl" />
+            Registrar sesión de hoy
+          </Link>
+        </Button>
       )}
 
       {/* Logros */}

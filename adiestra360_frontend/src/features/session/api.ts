@@ -1,21 +1,22 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { api } from "@/lib/api"
 import type { Achievement } from "@/types"
+import type { SessionResult } from "@/lib/exercise"
 
-export type Rating = "dificil" | "bien" | "excelente"
-
-/** Un ejercicio a registrar en la sesión. */
+/** Un ejercicio a registrar en la sesión (resultado derivado del checklist). */
 export interface TrainInput {
   exerciseId: string
   reinforcementTypeId: string
   exerciseName: string
-  rating: Rating
+  result: SessionResult
+  criteriaMet: number
+  criteriaTotal: number
 }
 
 /** Resultado por ejercicio tras crear sesión + evaluar progreso. */
 export interface ExerciseOutcome {
   exerciseName: string
-  rating: Rating
+  result: SessionResult
   success: boolean
   mastered: boolean
   leveledUp: boolean
@@ -86,7 +87,7 @@ export function useTrainSession(dogId: string | null) {
       const newAchievements: Achievement[] = []
 
       for (const input of inputs) {
-        const success = input.rating !== "dificil"
+        const success = input.result !== "reforzar"
 
         const { data: s } = await api.post<CreateSessionResp>(
           `/sessions/${dogId}/create/`,
@@ -94,6 +95,8 @@ export function useTrainSession(dogId: string | null) {
             exercise: input.exerciseId,
             reinforcement_type: input.reinforcementTypeId,
             success,
+            criteria_met: input.criteriaMet,
+            criteria_total: input.criteriaTotal,
             notes: notes?.trim() || undefined,
           }
         )
@@ -108,7 +111,7 @@ export function useTrainSession(dogId: string | null) {
 
         outcomes.push({
           exerciseName: input.exerciseName,
-          rating: input.rating,
+          result: input.result,
           success,
           mastered: ev.exercise_mastered,
           leveledUp: ev.level_upgraded,

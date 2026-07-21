@@ -20,34 +20,47 @@ UNLOCK_SUCCESS_THRESHOLD = 0.80  # 80% de éxito mínimo
 UNLOCK_SESSION_COUNT = 3         # mínimo 3 sesiones para evaluar
 
 
+def session_is_excellent(session):
+    """
+    Una sesión es 'Excelente' si el perro cumplió TODOS los criterios de avance
+    de su checklist. Sesiones antiguas (sin checklist) usan `success` como
+    equivalente, para no perder compatibilidad.
+    """
+    if session.criteria_total:
+        return (session.criteria_met or 0) >= session.criteria_total
+    return bool(session.success)
+
+
 def check_exercise_mastered(dog_id, exercise_id, dominated=False):
     """
-    Verifica si un ejercicio está dominado.
+    Verifica si un ejercicio está superado.
 
-    - Ejercicio normal: últimas 3 sesiones con >= 80% de éxito.
-    - Ejercicio marcado como dominado en el quiz: basta 1 sesión exitosa
-      para confirmarlo, porque el perro ya lo sabe y debería costarle poco.
-      Si la última sesión falla (le costó esfuerzo), se evalúa con la regla
-      normal: en realidad debe repasarlo.
+    Compuerta común: la sesión MÁS RECIENTE debe ser 'Excelente' (cumplir todos
+    los criterios de avance). No se da por superado si ahora mismo el perro no
+    cumple todos los criterios.
+
+    - Ejercicio marcado como dominado en el quiz: basta esa 1 sesión Excelente,
+      porque el perro ya lo sabe.
+    - Ejercicio normal: además, constancia — últimas 3 sesiones con >= 80% de
+      éxito (Bien o Excelente cuentan como éxito).
     """
-    if dominated:
-        last_session = TrainingSessions.objects.filter(
-            dog_id=dog_id,
-            exercise_id=exercise_id
-        ).order_by('-session_date').first()
-        if last_session and last_session.success:
-            return True
-        # Falló o aún no hay sesión → se evalúa con la regla estándar.
-
     sessions = TrainingSessions.objects.filter(
         dog_id=dog_id,
         exercise_id=exercise_id
-    ).order_by('-session_date')[:UNLOCK_SESSION_COUNT]
+    ).order_by('-session_date')
 
-    if sessions.count() < UNLOCK_SESSION_COUNT:
+    latest = sessions.first()
+    if not latest or not session_is_excellent(latest):
         return False
 
-    success_count = sum(1 for s in sessions if s.success)
+    if dominated:
+        return True
+
+    recent = list(sessions[:UNLOCK_SESSION_COUNT])
+    if len(recent) < UNLOCK_SESSION_COUNT:
+        return False
+
+    success_count = sum(1 for s in recent if s.success)
     return (success_count / UNLOCK_SESSION_COUNT) >= UNLOCK_SUCCESS_THRESHOLD
 
 

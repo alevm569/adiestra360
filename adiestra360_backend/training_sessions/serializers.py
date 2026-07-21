@@ -12,7 +12,7 @@ class TrainingSessionSerializer(serializers.ModelSerializer):
             'id', 'dog', 'exercise', 'exercise_name',
             'reinforcement_type', 'reinforcement_name',
             'response_time', 'duration_seconds', 'repetitions',
-            'success', 'notes', 'session_date'
+            'success', 'criteria_met', 'criteria_total', 'notes', 'session_date'
         ]
         read_only_fields = ['id', 'session_date']
 
