@@ -42,27 +42,28 @@ Añade el plugin **MySQL** al proyecto. Railway crea las variables
   `RAILWAY_PUBLIC_DOMAIN` se añade solo a `ALLOWED_HOSTS`/`CSRF` (ver
   `settings.py`), pero conviene fijar los dominios explícitos igualmente.
 
-- Tras el primer deploy, carga el contenido base (una vez), desde el shell
-  del servicio o localmente contra la BD de Railway:
+- El **catálogo y las técnicas se cargan solos** en cada arranque: el `Procfile`
+  corre `loaddata adiestra360_backend/fixtures/initial_data.json` (niveles,
+  ejercicios, refuerzos, logros) y `seed_techniques` (técnicas "cómo enseñar").
+  Ambos son idempotentes, así que se pueden repetir sin duplicar.
 
-  ```
-  python manage.py seed_techniques      # técnicas "cómo enseñar"
-  # + cualquier carga de catálogo/logros que ya use el proyecto
-  ```
-
-### 1.3 Servicio frontend (PWA)
-- **Root Directory:** `adiestra360_frontend`
-- Nixpacks usa `nixpacks.toml` (Node 20 + Caddy): `npm install` → `npm run
-  build` → `caddy run` sirviendo `dist/`.
-- **Antes de desplegar**, edita `adiestra360_frontend/.env.production` con la URL
-  real del backend:
+### 1.3 Frontend (PWA) en Netlify — gratis
+El frontend es estático, así que va en **Netlify** (plan gratis permanente, sin
+tarjeta), no en Railway.
+- Netlify → **Add new site → Import from GitHub** → el repo.
+- **Base directory:** `adiestra360_frontend` · **Build:** `npm run build` ·
+  **Publish:** `dist` (todo esto ya viene en `netlify.toml`).
+- La URL del backend va en `adiestra360_frontend/.env.production` (la lee Vite en
+  el build):
 
   ```
   VITE_API_URL=https://<backend>.up.railway.app/api
   ```
 
-- El `Caddyfile` ya maneja: fallback SPA a `index.html`, `no-cache` para
-  `sw.js`/`manifest.webmanifest` y cache inmutable para `/assets/*`.
+- `netlify.toml` maneja el fallback SPA a `index.html` (para que refrescar una
+  ruta como `/perfil` no dé 404).
+- **Importante:** en el backend de Railway, `CORS_ALLOWED_ORIGINS` debe incluir
+  el dominio de Netlify (p. ej. `https://adiestra360.netlify.app`).
 
 ### 1.4 Comprobaciones post-deploy
 - `https://<backend>/admin/` carga con estilos (WhiteNoise OK).
