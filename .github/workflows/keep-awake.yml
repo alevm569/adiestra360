@@ -1,0 +1,22 @@
+name: Keep backend awake
+
+# Mantiene despierto el backend en Render (plan gratis se duerme tras 15 min
+# sin uso) durante el periodo de validación. Hace un ping ligero cada 10 min.
+#
+# - Repo PÚBLICO: GitHub Actions es gratis e ilimitado -> sin problema.
+# - Repo PRIVADO: consume minutos gratis (2000/mes); a 10 min NO alcanza el
+#   mes. Si tu repo es privado, sube el intervalo o usa otra opción.
+
+on:
+  schedule:
+    - cron: "*/10 * * * *" # cada 10 minutos (UTC)
+  workflow_dispatch: {} # permite lanzarlo a mano desde la pestaña "Actions"
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping al backend
+        run: |
+          curl -sS -o /dev/null -w "HTTP %{http_code}\n" \
+            https://adiestra360-backend.onrender.com/admin/login/
