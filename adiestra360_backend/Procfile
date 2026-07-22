@@ -1,1 +1,1 @@
-web: python manage.py migrate --noinput && python manage.py collectstatic --noinput && gunicorn adiestra360_backend.wsgi:application --bind 0.0.0.0:$PORT --workers 3 --timeout 60
+web: python manage.py migrate --noinput && python manage.py loaddata adiestra360_backend/fixtures/initial_data.json && python manage.py seed_techniques && python manage.py collectstatic --noinput && gunicorn adiestra360_backend.wsgi:application --bind 0.0.0.0:$PORT --workers 3 --timeout 60
