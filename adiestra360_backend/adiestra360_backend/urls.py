@@ -25,4 +25,5 @@ urlpatterns = [
     path('api/sessions/', include('training_sessions.urls')),
     path('api/recommendations/', include('recommendations.urls')),
     path('api/gamification/', include('gamification.urls')),
+    path('api/validation/', include('validation.urls')),
 ]

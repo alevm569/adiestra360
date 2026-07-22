@@ -5,6 +5,8 @@ export interface User {
   id: string
   email: string
   name: string
+  /** True si el usuario puede ver el panel de validación (allowlist backend). */
+  is_metrics_admin?: boolean
 }
 
 export interface UserStreak {
@@ -272,6 +274,113 @@ export interface UserAchievementsResponse {
   pending: AchievementDetail[]
   total_earned: number
   total_available: number
+}
+
+// ---- Validación (Fase 5): cuestionario SUS + métricas ----
+
+export interface SusQuestion {
+  id: number
+  /** Ítem redactado en positivo (mejor = 5) o negativo (mejor = 1). */
+  positive: boolean
+  text: string
+}
+
+export interface SusScaleItem {
+  value: number
+  label: string
+}
+
+/** Respuesta SUS de un usuario (una por usuario). q1..q10 en escala 1–5. */
+export interface SurveyResponse {
+  id: string
+  q1: number
+  q2: number
+  q3: number
+  q4: number
+  q5: number
+  q6: number
+  q7: number
+  q8: number
+  q9: number
+  q10: number
+  sus_score: string | null // DecimalField llega como string
+  sus_adjective: string | null
+  comment: string | null
+  is_simulated: boolean
+  created_at: string
+  updated_at: string
+}
+
+/** Respuesta de GET /validation/survey/ */
+export interface SurveyData {
+  questions: SusQuestion[]
+  scale: SusScaleItem[]
+  response: SurveyResponse | null
+}
+
+/** Body de POST /validation/survey/ (q1..q10 + comentario opcional). */
+export type SurveySubmission = Record<`q${number}`, number> & {
+  comment?: string
+}
+
+export interface UsageMetrics {
+  users: number
+  dogs: number
+  total_sessions: number
+  success_rate: number
+  criteria_completion_rate: number | null
+  avg_sessions_per_user: number
+  avg_active_days: number
+  avg_total_xp: number
+  avg_current_streak: number | null
+  avg_longest_streak: number | null
+  mastered_exercises: number
+  dog_level_distribution: Record<string, number>
+}
+
+export interface SusPerItem {
+  id: number
+  positive: boolean
+  mean: number | null
+}
+
+export interface SusSummary {
+  n: number
+  mean: number | null
+  median: number | null
+  min: number | null
+  max: number | null
+  adjective: string | null
+  above_industry_avg_pct: number | null
+  per_item_mean: SusPerItem[]
+  distribution: Record<string, number>
+}
+
+export interface ExerciseRate {
+  exercise_id: string
+  exercise_name: string
+  total_sessions: number
+  success_rate: number
+}
+
+export interface MetricsSegment {
+  usage: UsageMetrics
+  sus: SusSummary
+  by_exercise: ExerciseRate[]
+}
+
+/** Respuesta de GET /validation/metrics/ (solo admin). */
+export interface ValidationMetrics {
+  sus_item_count: number
+  sus_questions: SusQuestion[]
+  counts: {
+    real_users: number
+    simulated_users: number
+    total_users: number
+  }
+  real: MetricsSegment
+  simulated: MetricsSegment
+  combined: MetricsSegment
 }
 
 /** Recomendación de la IA para cambiar el refuerzo (cuando el perro va < 50%). */

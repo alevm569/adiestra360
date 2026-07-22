@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react"
 import { useNavigate, Link } from "react-router-dom"
+import { cn } from "@/lib/utils"
 import { OnboardingHeader } from "@/components/OnboardingHeader"
 import { InputField } from "@/components/InputField"
 import { Button } from "@/components/ui/button"
@@ -13,6 +14,8 @@ export function RegisterPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirm, setConfirm] = useState("")
+  const [consent, setConsent] = useState(false)
+  const [showDetail, setShowDetail] = useState(false)
   const [localError, setLocalError] = useState<string | null>(null)
 
   function handleSubmit(e: FormEvent) {
@@ -26,8 +29,12 @@ export function RegisterPage() {
       setLocalError("Las contraseñas no coinciden.")
       return
     }
+    if (!consent) {
+      setLocalError("Debes aceptar el uso de datos para continuar.")
+      return
+    }
     register.mutate(
-      { name, email, password },
+      { name, email, password, research_consent: consent },
       { onSuccess: () => navigate("/onboarding/dog", { replace: true }) }
     )
   }
@@ -96,13 +103,57 @@ export function RegisterPage() {
           required
         />
 
+        {/* Consentimiento informado (uso de datos para la tesis) */}
+        <div className="mt-1 rounded-2xl border border-border bg-card p-3.5">
+          <button
+            type="button"
+            onClick={() => setConsent((v) => !v)}
+            aria-pressed={consent}
+            className="flex w-full items-start gap-2.5 text-left"
+          >
+            <Icon
+              name={consent ? "check_box" : "check_box_outline_blank"}
+              fill={consent}
+              className={cn(
+                "mt-0.5 flex-none text-xl",
+                consent ? "text-primary-deep" : "text-muted-foreground"
+              )}
+            />
+            <span className="text-xs font-semibold text-muted-foreground">
+              Acepto que mis datos de uso (entrenamientos, progreso y estadísticas)
+              se utilicen de forma anónima con fines académicos para una tesis de
+              maestría.
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowDetail((v) => !v)}
+            className="mt-2 ml-[30px] flex items-center gap-1 text-[11px] font-extrabold text-primary-deep"
+          >
+            {showDetail ? "Ocultar detalle" : "Más información"}
+            <Icon
+              name={showDetail ? "expand_less" : "expand_more"}
+              className="text-sm"
+            />
+          </button>
+          {showDetail && (
+            <p className="mt-2 ml-[30px] text-[11px] font-semibold leading-relaxed text-muted-foreground">
+              Registramos tu actividad dentro de la app (sesiones de entrenamiento,
+              progreso de tu perro y uso de las funciones) para analizar la
+              efectividad del sistema como parte de una tesis de maestría. Los datos
+              se tratan de forma agregada y anónima, no se comparten con terceros y
+              puedes solicitar su eliminación en cualquier momento.
+            </p>
+          )}
+        </div>
+
         {error && (
           <p className="text-sm font-semibold text-destructive">{error}</p>
         )}
 
         <Button
           type="submit"
-          disabled={register.isPending}
+          disabled={register.isPending || !consent}
           className="mt-2 h-12 rounded-xl text-base font-extrabold"
         >
           {register.isPending ? "Creando…" : "Continuar"}

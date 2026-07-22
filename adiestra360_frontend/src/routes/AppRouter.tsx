@@ -11,6 +11,8 @@ import { ProfilePage } from "@/features/profile/ProfilePage"
 import { EditProfilePage } from "@/features/profile/EditProfilePage"
 import { DogsPage } from "@/features/dogs/DogsPage"
 import { ExerciseTechniquePage } from "@/features/technique/ExerciseTechniquePage"
+import { SurveyPage } from "@/features/validation/SurveyPage"
+import { MetricsPage } from "@/features/validation/MetricsPage"
 
 export function AppRouter() {
   return (
@@ -30,6 +32,8 @@ export function AppRouter() {
         <Route path="/perfil/editar" element={<EditProfilePage />} />
         <Route path="/perros" element={<DogsPage />} />
         <Route path="/ejercicio/:exerciseId" element={<ExerciseTechniquePage />} />
+        <Route path="/validacion/encuesta" element={<SurveyPage />} />
+        <Route path="/validacion/metricas" element={<MetricsPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

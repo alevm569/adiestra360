@@ -29,6 +29,10 @@ class Users(AbstractBaseUser):
     password = models.CharField(max_length=255)
     experience_level = models.CharField(max_length=20, default='principiante')
     total_xp = models.IntegerField(default=0)
+    # Consentimiento informado: el usuario acepta que sus datos de uso se
+    # utilicen de forma anónima para la investigación de la tesis de maestría.
+    research_consent = models.BooleanField(default=False)
+    research_consent_at = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     objects = UsersManager()

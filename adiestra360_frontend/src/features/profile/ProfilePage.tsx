@@ -77,6 +77,18 @@ export function ProfilePage() {
         <div className="mt-6 mb-4">
           <MenuItem icon="pets" label="Mis perros" to="/perros" />
           <MenuItem icon="edit" label="Editar perfil" to="/perfil/editar" />
+          <MenuItem
+            icon="rate_review"
+            label="Cuestionario de usabilidad"
+            to="/validacion/encuesta"
+          />
+          {user?.is_metrics_admin && (
+            <MenuItem
+              icon="analytics"
+              label="Panel de validación"
+              to="/validacion/metricas"
+            />
+          )}
           <MenuItem icon="logout" label="Cerrar sesión" danger onClick={logout} />
         </div>
       </div>

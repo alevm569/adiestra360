@@ -12,6 +12,8 @@ interface RegisterPayload {
   name: string
   email: string
   password: string
+  /** Consentimiento informado (uso de datos para la tesis). Obligatorio. */
+  research_consent: boolean
 }
 
 async function loginRequest(payload: LoginPayload): Promise<AuthResponse> {
