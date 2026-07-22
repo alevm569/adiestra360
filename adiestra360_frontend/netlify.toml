@@ -1,0 +1,15 @@
+# Configuración de build de la PWA en Netlify.
+# En Netlify se define "Base directory = adiestra360_frontend"; por eso los
+# rutas de aquí son relativas a esa carpeta.
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# SPA: cualquier ruta de React Router que no sea un archivo real cae a
+# index.html (si no, al refrescar /perfil daría 404). Netlify sirve primero
+# los archivos existentes (sw.js, manifest, assets), así que no interfiere.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
