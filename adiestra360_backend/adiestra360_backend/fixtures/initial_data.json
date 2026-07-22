@@ -4,10 +4,10 @@
 
   {"model": "training.exercises", "pk": "ex-001", "fields": {"level_id": "lvl-001", "name": "Siéntate", "description": "El perro se sienta ante la orden verbal o señal.", "difficulty": 1, "estimated_duration": 10}},
   {"model": "training.exercises", "pk": "ex-002", "fields": {"level_id": "lvl-001", "name": "Échate", "description": "El perro se echa ante la orden verbal o señal.", "difficulty": 2, "estimated_duration": 10}},
-  {"model": "training.exercises", "pk": "ex-003", "fields": {"level_id": "lvl-001", "name": "Llamado", "description": "El perro acude al llamado del dueño.", "difficulty": 3, "estimated_duration": 10}},
+  {"model": "training.exercises", "pk": "ex-003", "fields": {"level_id": "lvl-001", "name": "Aquí", "description": "El perro acude al llamado del dueño.", "difficulty": 3, "estimated_duration": 10}},
   {"model": "training.exercises", "pk": "ex-004", "fields": {"level_id": "lvl-001", "name": "Quédate", "description": "El perro permanece quieto en un lugar hasta nueva orden.", "difficulty": 4, "estimated_duration": 15}},
   {"model": "training.exercises", "pk": "ex-005", "fields": {"level_id": "lvl-001", "name": "Lugar", "description": "El perro va a su lugar o cama ante la orden.", "difficulty": 5, "estimated_duration": 10}},
-  {"model": "training.exercises", "pk": "ex-006", "fields": {"level_id": "lvl-001", "name": "Obediencia a la pierna", "description": "El perro camina junto al dueño sin jalar la correa. Orden: Junto.", "difficulty": 6, "estimated_duration": 15}},
+  {"model": "training.exercises", "pk": "ex-006", "fields": {"level_id": "lvl-001", "name": "Junto", "description": "El perro camina junto al dueño sin jalar la correa. Orden: Junto.", "difficulty": 6, "estimated_duration": 15}},
 
   {"model": "training.exercises", "pk": "ex-007", "fields": {"level_id": "lvl-002", "name": "Obediencia a la pierna sin collar", "description": "El perro camina junto al dueño sin correa ni collar.", "difficulty": 1, "estimated_duration": 15}},
   {"model": "training.exercises", "pk": "ex-008", "fields": {"level_id": "lvl-002", "name": "Disciplina al frente con señas", "description": "Siéntate, échate, aquí y lugar ejecutados solo con señas.", "difficulty": 2, "estimated_duration": 15}},
