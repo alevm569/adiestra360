@@ -27,9 +27,12 @@ if not SECRET_KEY:
 # Hosts permitidos. En producción se definen por env (ALLOWED_HOSTS).
 # Railway expone el dominio público en RAILWAY_PUBLIC_DOMAIN: se añade solo.
 ALLOWED_HOSTS = _csv_env('ALLOWED_HOSTS')
+# En cada PaaS el dominio público se expone en una variable propia: se añade solo.
 _railway_host = os.getenv('RAILWAY_PUBLIC_DOMAIN')
-if _railway_host:
-    ALLOWED_HOSTS.append(_railway_host)
+_render_host = os.getenv('RENDER_EXTERNAL_HOSTNAME')
+for _host in (_railway_host, _render_host):
+    if _host:
+        ALLOWED_HOSTS.append(_host)
 if DEBUG:
     ALLOWED_HOSTS += ['localhost', '127.0.0.1', '0.0.0.0']
 if not ALLOWED_HOSTS:
@@ -37,8 +40,9 @@ if not ALLOWED_HOSTS:
 
 # Orígenes de confianza para CSRF (necesario para el admin sobre HTTPS).
 CSRF_TRUSTED_ORIGINS = _csv_env('CSRF_TRUSTED_ORIGINS')
-if _railway_host:
-    CSRF_TRUSTED_ORIGINS.append(f'https://{_railway_host}')
+for _host in (_railway_host, _render_host):
+    if _host:
+        CSRF_TRUSTED_ORIGINS.append(f'https://{_host}')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -94,19 +98,29 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'adiestra360_backend.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT'),
-        'OPTIONS': {
-            'charset': 'utf8mb4',
-        },
+# Base de datos.
+# - En la nube (Render/Neon) se define DATABASE_URL (postgres://...): se usa esa.
+# - En local (Windows) no hay DATABASE_URL, así que cae al MySQL de siempre.
+DATABASE_URL = os.getenv('DATABASE_URL')
+if DATABASE_URL:
+    import dj_database_url
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600),
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': os.getenv('DB_NAME'),
+            'USER': os.getenv('DB_USER'),
+            'PASSWORD': os.getenv('DB_PASSWORD'),
+            'HOST': os.getenv('DB_HOST'),
+            'PORT': os.getenv('DB_PORT'),
+            'OPTIONS': {
+                'charset': 'utf8mb4',
+            },
+        }
+    }
 
 if 'test' in sys.argv:
     DATABASES['default'] = {
