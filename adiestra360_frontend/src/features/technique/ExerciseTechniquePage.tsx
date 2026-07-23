@@ -18,9 +18,15 @@ export function ExerciseTechniquePage() {
 
   const tech = data?.technique
 
+  // La variante alternativa de los pasos usa golosina: solo tiene sentido
+  // mostrarla cuando el refuerzo asignado a este ejercicio es comida.
+  const usesFood =
+    data?.recommended_reinforcement?.trim().toLowerCase() === "comida"
+
   return (
     <div className="px-5">
-      <div className="flex items-center gap-2.5 pt-safe">
+      {/* Encabezado fijo: la flecha de atrás queda siempre accesible al hacer scroll. */}
+      <div className="sticky top-0 z-10 -mx-5 flex items-center gap-2.5 border-b border-border bg-background/95 px-5 pt-safe backdrop-blur">
         <button
           type="button"
           onClick={() => navigate(-1)}
@@ -90,6 +96,7 @@ export function ExerciseTechniquePage() {
                     key={step.order ?? i}
                     step={step}
                     index={i}
+                    showAlternative={usesFood}
                     suggestAlternative={data.suggest_alternative}
                     alternativeReason={data.alternative_reason}
                   />
@@ -222,11 +229,13 @@ function BulletCard({
 function StepCard({
   step,
   index,
+  showAlternative,
   suggestAlternative,
   alternativeReason,
 }: {
   step: TechniqueStep
   index: number
+  showAlternative: boolean
   suggestAlternative: boolean
   alternativeReason: string | null
 }) {
@@ -251,7 +260,7 @@ function StepCard({
         />
       )}
 
-      {step.alternative && (
+      {step.alternative && showAlternative && (
         <AlternativeBlock
           alt={step.alternative}
           highlighted={suggestAlternative}
