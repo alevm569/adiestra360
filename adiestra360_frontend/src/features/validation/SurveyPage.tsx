@@ -89,7 +89,7 @@ function SurveyForm({
       </header>
 
       {/* Body */}
-      <div className="flex-1 overflow-y-auto px-5 pb-4">
+      <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-4">
         <p className="mt-4 text-sm text-muted-foreground">
           Ayúdanos a mejorar Adiestra360. Indica cuánto estás de acuerdo con cada
           frase pensando en tu experiencia usando la app.

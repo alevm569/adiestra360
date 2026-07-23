@@ -15,10 +15,12 @@ Dos servicios en el mismo proyecto: **backend** (Django) y **frontend** (PWA),
 más un plugin **MySQL**.
 
 ### 1.1 Base de datos
+
 Añade el plugin **MySQL** al proyecto. Railway crea las variables
 `MYSQLDATABASE`, `MYSQLUSER`, `MYSQLPASSWORD`, `MYSQLHOST`, `MYSQLPORT`.
 
 ### 1.2 Servicio backend
+
 - **Root Directory:** `adiestra360_backend`
 - Railway detecta `requirements.txt` + `Procfile` (Nixpacks, Python 3.12 por
   `.python-version`). El `Procfile` corre migraciones, `collectstatic` y
@@ -32,13 +34,14 @@ Añade el plugin **MySQL** al proyecto. Railway crea las variables
   CSRF_TRUSTED_ORIGINS  = https://<backend>.up.railway.app
   CORS_ALLOWED_ORIGINS  = https://<frontend>.up.railway.app
   SECURE_SSL_REDIRECT   = True
-  VALIDATION_ADMIN_EMAILS = pablomartinvillacres@gmail.com
+  VALIDATION_ADMIN_EMAILS = valery.villarruel569@gmail.com
   DB_NAME     = ${{ MySQL.MYSQLDATABASE }}
   DB_USER     = ${{ MySQL.MYSQLUSER }}
   DB_PASSWORD = ${{ MySQL.MYSQLPASSWORD }}
   DB_HOST     = ${{ MySQL.MYSQLHOST }}
   DB_PORT     = ${{ MySQL.MYSQLPORT }}
   ```
+
   `RAILWAY_PUBLIC_DOMAIN` se añade solo a `ALLOWED_HOSTS`/`CSRF` (ver
   `settings.py`), pero conviene fijar los dominios explícitos igualmente.
 
@@ -48,8 +51,10 @@ Añade el plugin **MySQL** al proyecto. Railway crea las variables
   Ambos son idempotentes, así que se pueden repetir sin duplicar.
 
 ### 1.3 Frontend (PWA) en Netlify — gratis
+
 El frontend es estático, así que va en **Netlify** (plan gratis permanente, sin
 tarjeta), no en Railway.
+
 - Netlify → **Add new site → Import from GitHub** → el repo.
 - **Base directory:** `adiestra360_frontend` · **Build:** `npm run build` ·
   **Publish:** `dist` (todo esto ya viene en `netlify.toml`).
@@ -66,6 +71,7 @@ tarjeta), no en Railway.
   el dominio de Netlify (p. ej. `https://adiestra360.netlify.app`).
 
 ### 1.4 Comprobaciones post-deploy
+
 - `https://<backend>/admin/` carga con estilos (WhiteNoise OK).
 - La PWA abre, hace login y llega al backend (sin errores CORS en consola).
 - En Chrome DevTools → Application → Manifest e **Instalar app** disponible;
@@ -88,6 +94,7 @@ tarjeta), no en Railway.
 ## 3. Validación
 
 ### 3.1 Cuestionario SUS (dentro de la app)
+
 - Cualquier usuario lo abre en **Perfil → Cuestionario de usabilidad**
   (`/validacion/encuesta`). Son los 10 ítems estándar del System Usability
   Scale (escala 1–5) en español, con comentario abierto opcional.
@@ -95,6 +102,7 @@ tarjeta), no en Railway.
 - Endpoints: `GET/POST /api/validation/survey/`.
 
 ### 3.2 Datos simulados (complemento)
+
 Genera usuarios/perros/sesiones/encuestas sintéticos, reproducibles y marcados
 como simulados (email `@sim.adiestra360.local`):
 
@@ -108,6 +116,7 @@ Requiere el catálogo ya cargado (niveles/ejercicios/refuerzos). Con `--clear`
 elimina en cascada todos los datos simulados anteriores.
 
 ### 3.3 Panel de métricas (solo admin)
+
 - **Perfil → Panel de validación** (`/validacion/metricas`), visible solo para
   los emails de `VALIDATION_ADMIN_EMAILS`.
 - Segmenta **Reales / Simulados / Todos**: tasa de éxito, sesiones, días
@@ -117,18 +126,22 @@ elimina en cascada todos los datos simulados anteriores.
 - Endpoint: `GET /api/validation/metrics/`.
 
 ### 3.4 Exportación para el informe
+
 ```
 python manage.py export_metrics --format csv  --output participantes.csv
 python manage.py export_metrics --format json --output metricas.json
 ```
+
 - **CSV:** una fila por participante (segmento, perro, sesiones, tasa de éxito,
   días activos, racha, XP, puntaje SUS, adjetivo, comentario).
 - **JSON:** el payload agregado completo (igual que el panel).
 
 ### 3.5 Pruebas automáticas
+
 ```
 python manage.py test validation
 ```
+
 Cubre el scoring SUS, el upsert de la encuesta y el gateado por email del panel.
 
 ---

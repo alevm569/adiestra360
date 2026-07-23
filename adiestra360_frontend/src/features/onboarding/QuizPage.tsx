@@ -154,16 +154,14 @@ export function QuizPage() {
                     : "border-border bg-card"
                 )}
               >
-                <span
+                <Icon
+                  name={isSel ? "check_circle" : "radio_button_unchecked"}
+                  fill={isSel}
                   className={cn(
-                    "grid size-[22px] flex-none place-items-center rounded-full border-2",
-                    isSel
-                      ? "border-amber-deep bg-amber-deep text-white"
-                      : "border-border"
+                    "flex-none text-[22px]",
+                    isSel ? "text-amber-deep" : "text-muted-foreground/50"
                   )}
-                >
-                  {isSel && <Icon name="check" fill className="text-[15px]" />}
-                </span>
+                />
                 {option}
               </button>
             )

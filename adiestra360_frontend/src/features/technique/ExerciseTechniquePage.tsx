@@ -19,7 +19,7 @@ export function ExerciseTechniquePage() {
   const tech = data?.technique
 
   return (
-    <div className="min-h-safe px-5 pb-safe">
+    <div className="px-5">
       <div className="flex items-center gap-2.5 pt-safe">
         <button
           type="button"

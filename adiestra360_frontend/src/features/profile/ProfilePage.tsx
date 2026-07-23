@@ -21,7 +21,7 @@ export function ProfilePage() {
 
   return (
     <div className="flex h-dvh flex-col">
-      <div className="flex-1 overflow-y-auto px-5 pt-safe">
+      <div className="min-h-0 flex-1 overflow-y-auto px-5 pt-safe">
         <div className="flex items-center justify-between py-3">
           <h2 className="text-xl font-bold">Mi perfil</h2>
           <span className="grid size-9 place-items-center rounded-xl border border-border bg-card text-muted-foreground">

@@ -32,7 +32,7 @@ export function DashboardPage() {
 
   return (
     <div className="flex h-dvh flex-col">
-      <div className="flex-1 overflow-y-auto px-5 pt-safe">
+      <div className="min-h-0 flex-1 overflow-y-auto px-5 pt-safe">
         <TopBar onLogout={logout} />
 
         <div className="mt-1 mb-4">
