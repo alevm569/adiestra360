@@ -54,13 +54,13 @@
       "order": 4,
       "title": "Reforzar",
       "text": "En cuanto la posición sea correcta, felicita y entrega el premio inmediatamente. El premio debe llegar mientras el perro continúa echado.",
-      "image": "/tecnicas/OB-002-05.png"
+      "image": "/tecnicas/OB-003-06.png"
     }
   ],
 
   "errores_comunes": [
     {
-      "error": "el perro mantiene los cuartos traseros elevados.",
+      "error": "El perro mantiene los cuartos traseros elevados.",
       "correccion": "Esperar a que apoye completamente el pecho."
     },
     {
