@@ -1,8 +1,10 @@
+import { useState } from "react"
 import { Link } from "react-router-dom"
 import { cn } from "@/lib/utils"
 import { Icon } from "@/components/Icon"
 import { BottomNav } from "@/components/BottomNav"
 import { Button } from "@/components/ui/button"
+import { ProgressRulesSheet } from "@/features/help/ProgressRules"
 import { useAuth } from "@/stores/authStore"
 import { useUserStats, useUserAchievements } from "./api"
 import type { UserStats } from "@/types"
@@ -18,6 +20,7 @@ export function ProfilePage() {
   const logout = useAuth((s) => s.logout)
   const stats = useUserStats()
   const achievements = useUserAchievements()
+  const [rulesOpen, setRulesOpen] = useState(false)
 
   return (
     <div className="flex h-dvh flex-col">
@@ -76,6 +79,12 @@ export function ProfilePage() {
         {/* Menú */}
         <div className="mt-6 mb-4">
           <MenuItem icon="pets" label="Mis perros" to="/perros" />
+          <MenuItem icon="history" label="Historial de sesiones" to="/historial" />
+          <MenuItem
+            icon="help"
+            label="Cómo funciona el progreso"
+            onClick={() => setRulesOpen(true)}
+          />
           <MenuItem icon="edit" label="Editar perfil" to="/perfil/editar" />
           <MenuItem
             icon="rate_review"
@@ -92,6 +101,8 @@ export function ProfilePage() {
           <MenuItem icon="logout" label="Cerrar sesión" danger onClick={logout} />
         </div>
       </div>
+
+      {rulesOpen && <ProgressRulesSheet onClose={() => setRulesOpen(false)} />}
 
       <BottomNav active="profile" />
     </div>

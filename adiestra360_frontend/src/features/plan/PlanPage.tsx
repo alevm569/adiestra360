@@ -7,6 +7,7 @@ import { BottomNav } from "@/components/BottomNav"
 import { Button } from "@/components/ui/button"
 import { useDogStore } from "@/stores/dogStore"
 import { useDashboard } from "@/features/dashboard/api"
+import { ProgressRulesButton } from "@/features/help/ProgressRules"
 import { useRecommendationHistory } from "@/features/recommendations/api"
 import type { PlanExerciseItem } from "@/types"
 
@@ -98,6 +99,7 @@ export function PlanPage() {
                 <p className="mt-0.5 text-xs font-bold text-muted-foreground">
                   {dominated} de {list.length} ejercicios dominados en este nivel
                 </p>
+                <ProgressRulesButton className="mt-1.5" />
               </div>
             </div>
 
@@ -136,6 +138,7 @@ export function PlanPage() {
 
             <Button
               asChild
+              variant="cta"
               className="my-4 h-12 w-full rounded-xl text-base font-extrabold"
             >
               <Link to="/sesion">
@@ -143,6 +146,17 @@ export function PlanPage() {
                 Registrar sesión de hoy
               </Link>
             </Button>
+
+            <Link
+              to="/historial"
+              className="mb-5 flex items-center gap-3 rounded-2xl border border-border bg-card p-3.5 text-sm font-bold"
+            >
+              <span className="grid size-9 flex-none place-items-center rounded-xl bg-primary-soft text-primary-deep">
+                <Icon name="history" className="text-lg" />
+              </span>
+              Historial de sesiones
+              <Icon name="chevron_right" className="ml-auto text-xl text-muted-foreground" />
+            </Link>
           </>
         )}
 

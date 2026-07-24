@@ -162,6 +162,25 @@ export interface ExerciseProgress {
   mastered: boolean
 }
 
+/** Una sesión registrada (GET /sessions/<dog_id>/). */
+export interface TrainingSessionRecord {
+  id: string
+  dog: string
+  exercise: string
+  exercise_name: string
+  reinforcement_type: string
+  reinforcement_name: string
+  response_time: number | null
+  duration_seconds: number | null
+  repetitions: number | null
+  success: boolean | null
+  /** Criterios marcados en el checklist (nulos en sesiones antiguas). */
+  criteria_met: number | null
+  criteria_total: number | null
+  notes: string | null
+  session_date: string
+}
+
 export interface Achievement {
   name: string
   xp_reward: number
@@ -334,7 +353,11 @@ export interface UsageMetrics {
   avg_total_xp: number
   avg_current_streak: number | null
   avg_longest_streak: number | null
+  /** Superados por la encuesta inicial o entrenando (mismo criterio que la app). */
   mastered_exercises: number
+  /** Total de ejercicios en los planes (activos e inactivos). */
+  plan_exercises: number
+  mastery_rate: number
   dog_level_distribution: Record<string, number>
 }
 

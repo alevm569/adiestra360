@@ -11,6 +11,7 @@ import { ProfilePage } from "@/features/profile/ProfilePage"
 import { EditProfilePage } from "@/features/profile/EditProfilePage"
 import { DogsPage } from "@/features/dogs/DogsPage"
 import { ExerciseTechniquePage } from "@/features/technique/ExerciseTechniquePage"
+import { HistoryPage } from "@/features/history/HistoryPage"
 import { SurveyPage } from "@/features/validation/SurveyPage"
 import { MetricsPage } from "@/features/validation/MetricsPage"
 
@@ -28,6 +29,7 @@ export function AppRouter() {
         <Route path="/" element={<DashboardPage />} />
         <Route path="/plan" element={<PlanPage />} />
         <Route path="/sesion" element={<SessionPage />} />
+        <Route path="/historial" element={<HistoryPage />} />
         <Route path="/perfil" element={<ProfilePage />} />
         <Route path="/perfil/editar" element={<EditProfilePage />} />
         <Route path="/perros" element={<DogsPage />} />

@@ -164,6 +164,7 @@ export function SessionPage() {
 
           <Button
             onClick={save}
+            variant="cta"
             disabled={trainedCount === 0 || train.isPending}
             className="my-4 h-12 rounded-xl text-base font-extrabold"
           >
@@ -434,10 +435,22 @@ function SessionSuccess({
         </div>
       )}
 
-      <Button onClick={onDone} className="mb-4 mt-6 h-12 rounded-xl text-base font-extrabold">
+      <Button
+        onClick={onDone}
+        variant="cta"
+        className="mt-6 h-12 rounded-xl text-base font-extrabold"
+      >
         Volver al inicio
         <Icon name="arrow_forward" className="text-xl" />
       </Button>
+
+      <Link
+        to="/historial"
+        className="mb-4 mt-3 flex items-center justify-center gap-1 text-xs font-extrabold text-primary-deep"
+      >
+        <Icon name="history" className="text-base" />
+        Ver el historial de sesiones
+      </Link>
     </div>
   )
 }

@@ -142,7 +142,11 @@ export function ExerciseTechniquePage() {
       {/* CTA fijo: enlaza el tutorial con el registro de la sesión del día. */}
       {data && (
         <div className="sticky bottom-0 -mx-5 mt-2 border-t border-border bg-background/95 px-5 py-3 pb-safe backdrop-blur">
-          <Button asChild className="h-12 w-full rounded-xl text-base font-extrabold">
+          <Button
+            asChild
+            variant="cta"
+            className="h-12 w-full rounded-xl text-base font-extrabold"
+          >
             <Link to="/sesion">
               <Icon name="checklist" className="text-xl" />
               Registrar sesión de hoy

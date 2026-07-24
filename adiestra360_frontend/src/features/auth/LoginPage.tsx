@@ -2,9 +2,8 @@ import { useState, type FormEvent } from "react"
 import { useNavigate, Link } from "react-router-dom"
 import { Brandmark } from "@/components/Brandmark"
 import { Icon } from "@/components/Icon"
+import { InputField } from "@/components/InputField"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { useLogin } from "./api"
 
 export function LoginPage() {
@@ -54,46 +53,31 @@ export function LoginPage() {
         </p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="email">Correo</Label>
-            <div className="relative">
-              <Icon
-                name="mail"
-                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-lg text-muted-foreground"
-              />
-              <Input
-                id="email"
-                type="email"
-                inputMode="email"
-                autoComplete="email"
-                placeholder="tucorreo@ejemplo.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="h-12 rounded-xl pl-10"
-              />
-            </div>
-          </div>
+          <InputField
+            id="email"
+            label="Correo"
+            icon="mail"
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            placeholder="tucorreo@ejemplo.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="password">Contraseña</Label>
-            <div className="relative">
-              <Icon
-                name="lock"
-                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-lg text-muted-foreground"
-              />
-              <Input
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="h-12 rounded-xl pl-10"
-              />
-            </div>
-          </div>
+          {/* El botón del ojo (dentro de InputField) permite revisar lo escrito. */}
+          <InputField
+            id="password"
+            label="Contraseña"
+            icon="lock"
+            type="password"
+            autoComplete="current-password"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
 
           {login.isError && (
             <p className="text-sm font-semibold text-destructive">

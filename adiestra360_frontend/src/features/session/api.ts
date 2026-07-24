@@ -143,6 +143,7 @@ export function useTrainSession(dogId: string | null) {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["dashboard", dogId] })
+      qc.invalidateQueries({ queryKey: ["sessions", dogId] })
       qc.invalidateQueries({ queryKey: ["plan", dogId] })
       qc.invalidateQueries({ queryKey: ["recommendations", dogId] })
     },

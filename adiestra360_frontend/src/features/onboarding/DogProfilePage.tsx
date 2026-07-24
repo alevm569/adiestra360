@@ -24,13 +24,27 @@ export function DogProfilePage() {
   const [breed, setBreed] = useState("")
   const [energy, setEnergy] = useState<DogDraft["energy_level"]>("medio")
 
+  /**
+   * El peso admite decimales. Se captura como texto porque en los teclados en
+   * español el separador es la coma, y un <input type="number"> la descarta
+   * (el campo se queda vacío al escribir "18,5"). Aquí se normaliza a punto y
+   * se limita a 2 decimales, que es lo que guarda el backend.
+   */
+  function handleWeight(value: string) {
+    const normalized = value.replace(",", ".")
+    if (normalized === "" || /^\d{0,3}(\.\d{0,2})?$/.test(normalized)) {
+      setWeight(normalized)
+    }
+  }
+
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
+    const parsedWeight = parseFloat(weight)
     setDog({
       name: name.trim(),
       breed: breed.trim(),
       age_months: age ? parseInt(age, 10) : null,
-      weight: weight ? parseFloat(weight) : null,
+      weight: Number.isNaN(parsedWeight) ? null : parsedWeight,
       energy_level: energy,
     })
     navigate("/onboarding/quiz")
@@ -85,13 +99,12 @@ export function DogProfilePage() {
               id="dog-weight"
               label="Peso (kg)"
               icon="monitor_weight"
-              type="number"
+              type="text"
               inputMode="decimal"
-              min={0}
-              step="0.1"
-              placeholder="18.5"
+              placeholder="18,5"
+              hint="Puedes usar decimales"
               value={weight}
-              onChange={(e) => setWeight(e.target.value)}
+              onChange={(e) => handleWeight(e.target.value)}
             />
           </div>
         </div>

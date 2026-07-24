@@ -11,6 +11,9 @@ const buttonVariants = cva(
       variant: {
         default:
           "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
+        // Acción principal de una pantalla: verde profundo, con contraste
+        // suficiente para que no se lea como un botón desactivado.
+        cta: "bg-primary-deep text-white shadow-sm hover:bg-primary-deep/90",
         destructive:
           "bg-destructive text-white shadow-xs hover:bg-destructive/90",
         outline:

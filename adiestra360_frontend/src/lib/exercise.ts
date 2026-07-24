@@ -43,6 +43,21 @@ export function criteriaResult(total: number, checked: Set<number>): SessionResu
   return checked.has(0) ? "bien" : "reforzar"
 }
 
+/**
+ * Resultado de una sesión ya guardada, reconstruido desde el checklist.
+ * Misma regla que el backend (`session_is_excellent`): con todos los criterios
+ * cumplidos es Excelente; si no, `success` decide entre "va bien" y "reforzar".
+ * Las sesiones antiguas (sin checklist) se evalúan solo por `success`.
+ */
+export const storedSessionResult = (s: {
+  success: boolean | null
+  criteria_met: number | null
+  criteria_total: number | null
+}): SessionResult => {
+  if (s.criteria_total && (s.criteria_met ?? 0) >= s.criteria_total) return "excelente"
+  return s.success ? "bien" : "reforzar"
+}
+
 /** Meta visual (etiqueta, icono, tono) de cada resultado. */
 export const RESULT_META: Record<
   SessionResult,

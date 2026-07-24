@@ -174,7 +174,7 @@ def quiz_questions(request):
         {
             'id': 11,
             'category': 'owner_experience',
-            'question': '¿Conoces la diferencia entre refuerzo positivo y corrección?',
+            'question': '¿Conoces la diferencia entre refuerzo y corrección?',
             'options': ['Sí, lo aplico', 'Lo conozco pero no lo aplico', 'Lo he escuchado', 'No lo conozco'],
             'experience_related': 'experience_level'
         },

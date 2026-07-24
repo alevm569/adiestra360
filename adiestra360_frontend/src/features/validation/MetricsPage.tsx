@@ -28,8 +28,11 @@ export function MetricsPage() {
   }
 
   return (
-    <div className="flex h-dvh flex-col">
-      <header className="flex items-center gap-2 border-b border-border px-4 pt-safe">
+    // Scroll del documento (no un contenedor con alto fijo): dentro del WebView
+    // un panel `h-dvh` con scroll propio se queda trabado al cambiar de pestaña
+    // o cuando la barra del navegador aparece/desaparece.
+    <div className="min-h-safe px-5 pb-10">
+      <header className="sticky top-0 z-10 -mx-5 flex items-center gap-2 border-b border-border bg-background/95 px-5 pt-safe backdrop-blur">
         <button
           type="button"
           onClick={() => navigate("/perfil")}
@@ -41,11 +44,9 @@ export function MetricsPage() {
         <h2 className="py-3 text-lg font-bold">Panel de validación</h2>
       </header>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-8">
-        <Counts data={data} />
-        <SegmentTabs value={segment} onChange={setSegment} />
-        <Segment segment={data[segment]} />
-      </div>
+      <Counts data={data} />
+      <SegmentTabs value={segment} onChange={setSegment} />
+      <Segment segment={data[segment]} />
     </div>
   )
 }
@@ -113,6 +114,9 @@ function Segment({ segment }: { segment: MetricsSegment }) {
   return (
     <>
       <SectionTitle>Uso y progreso</SectionTitle>
+      <p className="-mt-1.5 mb-2.5 text-[11px] font-bold text-muted-foreground">
+        {u.users} usuario(s) · {u.dogs} perro(s)
+      </p>
       <div className="grid grid-cols-2 gap-2.5">
         <Kpi icon="check_circle" value={pct(u.success_rate)} label="Tasa de éxito" />
         <Kpi icon="fitness_center" value={u.total_sessions} label="Sesiones" />
@@ -134,8 +138,8 @@ function Segment({ segment }: { segment: MetricsSegment }) {
         <Kpi icon="military_tech" value={num(u.avg_total_xp)} label="XP (prom.)" />
         <Kpi
           icon="verified"
-          value={u.mastered_exercises}
-          label="Ejercicios dominados"
+          value={`${u.mastered_exercises}/${u.plan_exercises}`}
+          label={`Ejercicios superados (${pct(u.mastery_rate)})`}
         />
         <Kpi
           icon="rule"
@@ -143,6 +147,8 @@ function Segment({ segment }: { segment: MetricsSegment }) {
           label="Criterios cumplidos"
         />
       </div>
+
+      <MultiDogNote users={u.users} dogs={u.dogs} />
 
       <SectionTitle>Cuestionario SUS</SectionTitle>
       <SusCard segment={segment} />
@@ -177,6 +183,65 @@ function Segment({ segment }: { segment: MetricsSegment }) {
     </>
   )
 }
+
+/**
+ * Cómo leer las medias cuando un usuario tiene varios perros: la unidad de
+ * análisis del SUS y de la gamificación es la persona; la del entrenamiento,
+ * el perro. Se explica en el panel para que nadie interprete
+ * "sesiones/usuario" como "sesiones por perro".
+ */
+function MultiDogNote({ users, dogs }: { users: number; dogs: number }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="mt-2.5 rounded-2xl border border-border bg-card p-3.5 shadow-sm">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="flex w-full items-center gap-2 text-left"
+      >
+        <Icon name="info" fill className="text-lg text-sky-deep" />
+        <b className="flex-1 text-xs font-extrabold uppercase tracking-wider text-muted-foreground">
+          Usuarios con más de un perro
+        </b>
+        <Icon
+          name={open ? "expand_less" : "expand_more"}
+          className="text-lg text-muted-foreground"
+        />
+      </button>
+      {open && (
+        <ul className="mt-2 flex flex-col gap-1.5 text-xs font-semibold text-muted-foreground">
+          <li>
+            <b className="text-foreground">Sesiones, tasa de éxito y criterios</b> suman
+            los perros del usuario: quien entrena a dos o tres aporta las sesiones de
+            todos.
+          </li>
+          <li>
+            <b className="text-foreground">Sesiones/usuario</b> divide entre personas, no
+            entre perros ({dogsPerUser(users, dogs)}).
+          </li>
+          <li>
+            <b className="text-foreground">Días activos</b> cuenta un día una sola vez
+            aunque ese día se entrene con dos perros.
+          </li>
+          <li>
+            <b className="text-foreground">Racha, XP y SUS</b> son del usuario: una sola
+            racha, un solo XP y una sola respuesta del cuestionario, sin importar cuántos
+            perros tenga.
+          </li>
+          <li>
+            <b className="text-foreground">Ejercicios superados y nivel</b> son por perro:
+            cada perro tiene su propio plan y progresa por separado.
+          </li>
+        </ul>
+      )}
+    </div>
+  )
+}
+
+/** Relación perros/usuarios del segmento (p. ej. "1.5 perros por usuario"). */
+const dogsPerUser = (users: number, dogs: number) =>
+  users > 0 ? `${Math.round((dogs / users) * 10) / 10} perros por usuario` : "sin usuarios"
 
 function SusCard({ segment }: { segment: MetricsSegment }) {
   const s = segment.sus

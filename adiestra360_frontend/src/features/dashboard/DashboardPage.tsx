@@ -11,6 +11,7 @@ import { useAuth } from "@/stores/authStore"
 import { useDogStore } from "@/stores/dogStore"
 import { useDogs } from "@/features/dogs/api"
 import { useDashboard } from "./api"
+import { ProgressRulesButton } from "@/features/help/ProgressRules"
 import { useApplyRecommendation } from "@/features/recommendations/api"
 import type {
   ActivePlan,
@@ -228,6 +229,12 @@ function DashboardContent({
           <p className="mt-1.5 text-[10px] font-extrabold text-muted-foreground">
             {doneCount}/{activeExercises.length} superados · {gamification.total_xp} XP
           </p>
+          {/* El % mide ejercicios superados, no sesiones: se explica aquí mismo,
+              que es donde el número genera dudas. */}
+          <ProgressRulesButton
+            label="¿Cómo sube este porcentaje?"
+            className="mt-1.5"
+          />
         </div>
       </div>
 
@@ -268,6 +275,14 @@ function DashboardContent({
           {pending.length} pendientes
         </small>
       </div>
+
+      {pending.length > 0 && (
+        <p className="mb-2.5 flex items-start gap-1.5 rounded-xl bg-muted p-2.5 text-[11px] font-bold text-muted-foreground">
+          <Icon name="info" fill className="flex-none text-sm text-sky-deep" />
+          Cada ejercicio se supera con 3 sesiones exitosas seguidas y la última con
+          todos los criterios cumplidos.
+        </p>
+      )}
 
       {pending.length === 0 ? (
         <p className="rounded-2xl border border-border bg-card p-4 text-center text-sm font-semibold text-muted-foreground">
@@ -314,6 +329,7 @@ function DashboardContent({
       {pending.length > 0 && (
         <Button
           asChild
+          variant="cta"
           className="mt-3 h-12 w-full rounded-xl text-base font-extrabold"
         >
           <Link to="/sesion">
@@ -372,8 +388,18 @@ function PerformanceCard({ stats }: { stats: SessionStats }) {
   ]
   return (
     <div className="mb-4 rounded-2xl border border-border bg-card p-4 shadow-sm">
-      <div className="mb-3 text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">
-        Desempeño
+      <div className="mb-3 flex items-center justify-between">
+        <span className="text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">
+          Desempeño
+        </span>
+        {/* El historial vive junto a los números que resume. */}
+        <Link
+          to="/historial"
+          className="flex items-center gap-0.5 text-[11px] font-extrabold text-primary-deep"
+        >
+          Ver historial
+          <Icon name="chevron_right" className="text-sm" />
+        </Link>
       </div>
       <div className="flex items-center">
         {tiles.map((t, i) => (

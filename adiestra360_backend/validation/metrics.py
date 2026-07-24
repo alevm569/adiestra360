@@ -25,6 +25,51 @@ def _round(value, ndigits=1):
     return round(value, ndigits) if value is not None else None
 
 
+def _mastered_exercises(dog_ids):
+    """
+    Ejercicios superados con el MISMO criterio que ve el usuario en la app:
+    los que la encuesta inicial marcó como dominados más los que el perro
+    dominó entrenando (últimas 3 sesiones exitosas y la más reciente Excelente).
+
+    Devuelve (superados, total_en_planes) sobre todos los ejercicios de los
+    planes —activos e inactivos—, para medir el progreso acumulado.
+
+    La regla vive en `training.views.check_exercise_mastered`; aquí se evalúa
+    en memoria (dos consultas para todo el segmento) porque llamarla por cada
+    ejercicio dispararía cientos de consultas al construir el panel. Se
+    reutilizan sus constantes y `session_is_excellent` para que no diverjan.
+    """
+    # Import local: evita arrastrar las dependencias de las vistas al importar
+    # este módulo.
+    from training.views import (
+        session_is_excellent, UNLOCK_SESSION_COUNT, UNLOCK_SUCCESS_THRESHOLD,
+    )
+
+    # Sesiones de estos perros agrupadas por (perro, ejercicio), de la más
+    # reciente a la más antigua.
+    by_pair = {}
+    for s in TrainingSessions.objects.filter(dog_id__in=dog_ids).order_by('-session_date'):
+        by_pair.setdefault((s.dog_id, s.exercise_id), []).append(s)
+
+    def mastered_by_training(dog_id, exercise_id):
+        recent = by_pair.get((dog_id, exercise_id), [])[:UNLOCK_SESSION_COUNT]
+        if len(recent) < UNLOCK_SESSION_COUNT or not session_is_excellent(recent[0]):
+            return False
+        successes = sum(1 for s in recent if s.success)
+        return (successes / UNLOCK_SESSION_COUNT) >= UNLOCK_SUCCESS_THRESHOLD
+
+    rows = list(
+        TrainingPlanExercises.objects
+        .filter(training_plan__dog_id__in=dog_ids)
+        .values_list('training_plan__dog_id', 'exercise_id', 'dominated')
+    )
+    mastered = sum(
+        1 for dog_id, exercise_id, dominated in rows
+        if dominated or mastered_by_training(dog_id, exercise_id)
+    )
+    return mastered, len(rows)
+
+
 def _segment_user_ids():
     """Devuelve (real_ids, simulated_ids) según el dominio del email."""
     real, simulated = [], []
@@ -65,15 +110,13 @@ def _usage_metrics(user_ids):
     xp_values = list(Users.objects.filter(id__in=user_ids)
                      .values_list('total_xp', flat=True))
 
-    # Progreso: distribución de nivel de los perros y ejercicios dominados.
+    # Progreso: distribución de nivel de los perros y ejercicios superados.
     level_dist = {}
     for lvl in dogs.values_list('training_level', flat=True):
         key = str(lvl) if lvl is not None else 'sin_nivel'
         level_dist[key] = level_dist.get(key, 0) + 1
 
-    mastered = TrainingPlanExercises.objects.filter(
-        training_plan__dog_id__in=dog_ids, dominated=True
-    ).count()
+    mastered, plan_exercises = _mastered_exercises(dog_ids)
 
     n_users = len(user_ids)
     return {
@@ -90,6 +133,8 @@ def _usage_metrics(user_ids):
         'avg_longest_streak': _round(
             streaks.aggregate(v=Avg('longest_streak'))['v']),
         'mastered_exercises': mastered,
+        'plan_exercises': plan_exercises,
+        'mastery_rate': _round(mastered / plan_exercises * 100) if plan_exercises else 0.0,
         'dog_level_distribution': level_dist,
     }
 
