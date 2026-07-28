@@ -191,7 +191,7 @@ function PhotoPickerSheet({
         className="w-full rounded-t-3xl bg-background px-5 pb-safe pt-5 shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="mb-1 flex items-center gap-2">
+        <div className="mb-4 flex items-center gap-2">
           <h2 className="flex-1 text-lg font-bold">Foto de tu perro</h2>
           <button
             type="button"
@@ -204,12 +204,8 @@ function PhotoPickerSheet({
           </button>
         </div>
 
-        {/* Aviso de permiso: se pide acceso ANTES de abrir cámara/galería. */}
-        <p className="mb-4 text-sm font-semibold text-muted-foreground">
-          Adiestra360 usará tu cámara o galería solo para la foto de tu perro.
-          Elige una opción para dar acceso.
-        </p>
-
+        {/* Menú de acción. El permiso de acceso lo pide el propio dispositivo
+            al abrir la cámara o la galería (en la app instalada). */}
         {error && (
           <p className="mb-3 flex items-start gap-1.5 rounded-xl bg-coral-soft p-3 text-xs font-bold text-coral-deep">
             <Icon name="error" fill className="flex-none text-sm" />

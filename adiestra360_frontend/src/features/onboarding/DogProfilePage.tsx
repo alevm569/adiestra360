@@ -72,17 +72,21 @@ export function DogProfilePage() {
           type="button"
           onClick={() => picker.start({ canRemove: !!photo })}
           aria-label={photo ? "Cambiar foto" : "Subir foto"}
-          className="relative grid size-24 place-items-center overflow-hidden rounded-full border-[3px] border-card bg-coral-soft text-coral-deep shadow-sm"
+          className="relative"
         >
-          {picker.busy ? (
-            <Icon name="progress_activity" className="animate-spin text-3xl" />
-          ) : photo ? (
-            <img src={photo} alt="Foto del perro" className="size-full object-cover" />
-          ) : (
-            <Icon name="pets" fill className="text-4xl" />
-          )}
-          <span className="absolute -bottom-0.5 -right-0.5 grid size-8 place-items-center rounded-full border-[2.5px] border-card bg-coral-deep text-white">
-            <Icon name={photo ? "edit" : "photo_camera"} className="text-base" />
+          {/* overflow-hidden solo en el círculo de la imagen, para que el
+              distintivo de la cámara no quede recortado. */}
+          <span className="grid size-24 place-items-center overflow-hidden rounded-full border-[3px] border-card bg-coral-soft text-coral-deep shadow-sm">
+            {picker.busy ? (
+              <Icon name="progress_activity" className="animate-spin text-3xl" />
+            ) : photo ? (
+              <img src={photo} alt="Foto del perro" className="size-full object-cover" />
+            ) : (
+              <Icon name="pets" fill className="text-4xl" />
+            )}
+          </span>
+          <span className="absolute -bottom-0.5 -right-0.5 grid size-8 place-items-center rounded-full border-[2.5px] border-card bg-coral-deep text-white shadow-sm">
+            <Icon name={photo ? "edit" : "photo_camera"} fill className="text-base" />
           </span>
         </button>
       </div>

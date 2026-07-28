@@ -95,8 +95,8 @@ export function DogsPage() {
                       <Icon name="pets" fill className="text-2xl" />
                     </div>
                   )}
-                  <span className="absolute -bottom-1 -right-1 grid size-5 place-items-center rounded-full border-2 border-card bg-primary-deep text-white">
-                    <Icon name="photo_camera" className="text-[11px]" />
+                  <span className="absolute -bottom-1.5 -right-1.5 grid size-7 place-items-center rounded-full border-2 border-card bg-primary-deep text-white shadow-sm">
+                    <Icon name="photo_camera" fill className="text-base" />
                   </span>
                   {updating && (
                     <span className="absolute inset-0 grid place-items-center rounded-2xl bg-card/70 text-primary-deep">
