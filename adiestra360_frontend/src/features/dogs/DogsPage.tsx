@@ -1,16 +1,37 @@
+import { useRef } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { cn } from "@/lib/utils"
 import { cap } from "@/lib/exercise"
 import { Icon } from "@/components/Icon"
 import { Button } from "@/components/ui/button"
+import { usePhotoPicker } from "@/features/photo/usePhotoPicker"
 import { useDogStore } from "@/stores/dogStore"
-import { useDogs } from "./api"
+import { useDogs, useUpdateDogPhoto } from "./api"
 
 export function DogsPage() {
   const navigate = useNavigate()
   const activeDogId = useDogStore((s) => s.activeDogId)
   const setActiveDog = useDogStore((s) => s.setActiveDog)
   const { data: dogs, isLoading, isError } = useDogs()
+  const updatePhoto = useUpdateDogPhoto()
+
+  // Perro cuya foto se está editando (el picker es único y compartido).
+  const editingId = useRef<string | null>(null)
+  const picker = usePhotoPicker(
+    (photo) => {
+      if (editingId.current) updatePhoto.mutate({ id: editingId.current, photo })
+    },
+    {
+      onRemove: () => {
+        if (editingId.current) updatePhoto.mutate({ id: editingId.current, photo: null })
+      },
+    }
+  )
+
+  function editPhoto(id: string, hasPhoto: boolean) {
+    editingId.current = id
+    picker.start({ canRemove: hasPhoto })
+  }
 
   function select(id: string) {
     setActiveDog(id)
@@ -47,35 +68,65 @@ export function DogsPage() {
         <div className="mt-4 flex flex-col gap-2.5">
           {dogs.map((dog) => {
             const isActive = dog.id === activeDogId
+            const updating = updatePhoto.isPending && editingId.current === dog.id
             return (
-              <button
+              <div
                 key={dog.id}
-                type="button"
-                onClick={() => select(dog.id)}
                 className={cn(
-                  "flex items-center gap-3 rounded-2xl border bg-card p-3.5 text-left transition-colors",
+                  "flex items-center gap-3 rounded-2xl border bg-card p-3.5 transition-colors",
                   isActive ? "border-primary ring-[3px] ring-primary-soft" : "border-border"
                 )}
               >
-                <div className="grid size-12 flex-none place-items-center rounded-2xl bg-primary-soft text-primary-deep">
-                  <Icon name="pets" fill className="text-2xl" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <b className="block font-display text-base">{dog.name}</b>
-                  <small className="text-xs font-bold text-muted-foreground">
-                    {[cap(dog.breed), `Nivel ${dog.training_level ?? 1}`]
-                      .filter(Boolean)
-                      .join(" · ")}
-                  </small>
-                </div>
-                {isActive ? (
-                  <span className="rounded-full bg-primary-soft px-2.5 py-1 text-[10px] font-extrabold text-primary-deep">
-                    Activo
+                {/* La foto es su propio botón: toca para cambiarla. */}
+                <button
+                  type="button"
+                  onClick={() => editPhoto(dog.id, !!dog.photo)}
+                  aria-label={dog.photo ? `Cambiar la foto de ${dog.name}` : `Añadir foto a ${dog.name}`}
+                  className="relative flex-none"
+                >
+                  {dog.photo ? (
+                    <img
+                      src={dog.photo}
+                      alt={dog.name}
+                      className="size-12 rounded-2xl object-cover"
+                    />
+                  ) : (
+                    <div className="grid size-12 place-items-center rounded-2xl bg-primary-soft text-primary-deep">
+                      <Icon name="pets" fill className="text-2xl" />
+                    </div>
+                  )}
+                  <span className="absolute -bottom-1 -right-1 grid size-5 place-items-center rounded-full border-2 border-card bg-primary-deep text-white">
+                    <Icon name="photo_camera" className="text-[11px]" />
                   </span>
-                ) : (
-                  <Icon name="chevron_right" className="text-xl text-muted-foreground" />
-                )}
-              </button>
+                  {updating && (
+                    <span className="absolute inset-0 grid place-items-center rounded-2xl bg-card/70 text-primary-deep">
+                      <Icon name="progress_activity" className="animate-spin text-xl" />
+                    </span>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => select(dog.id)}
+                  className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                >
+                  <div className="min-w-0 flex-1">
+                    <b className="block font-display text-base">{dog.name}</b>
+                    <small className="text-xs font-bold text-muted-foreground">
+                      {[cap(dog.breed), `Nivel ${dog.training_level ?? 1}`]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </small>
+                  </div>
+                  {isActive ? (
+                    <span className="rounded-full bg-primary-soft px-2.5 py-1 text-[10px] font-extrabold text-primary-deep">
+                      Activo
+                    </span>
+                  ) : (
+                    <Icon name="chevron_right" className="text-xl text-muted-foreground" />
+                  )}
+                </button>
+              </div>
             )
           })}
 
@@ -91,6 +142,8 @@ export function DogsPage() {
           </Button>
         </div>
       )}
+
+      {picker.element}
     </div>
   )
 }

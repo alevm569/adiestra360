@@ -5,6 +5,7 @@ import { OnboardingHeader } from "@/components/OnboardingHeader"
 import { InputField } from "@/components/InputField"
 import { Button } from "@/components/ui/button"
 import { Icon } from "@/components/Icon"
+import { usePhotoPicker } from "@/features/photo/usePhotoPicker"
 import { useOnboarding } from "@/stores/onboardingStore"
 import type { DogDraft } from "@/types"
 
@@ -23,6 +24,8 @@ export function DogProfilePage() {
   const [weight, setWeight] = useState("")
   const [breed, setBreed] = useState("")
   const [energy, setEnergy] = useState<DogDraft["energy_level"]>("medio")
+  const [photo, setPhoto] = useState<string | null>(null)
+  const picker = usePhotoPicker(setPhoto, { onRemove: () => setPhoto(null) })
 
   /**
    * El peso admite decimales. Se captura como texto porque en los teclados en
@@ -46,6 +49,7 @@ export function DogProfilePage() {
       age_months: age ? parseInt(age, 10) : null,
       weight: Number.isNaN(parsedWeight) ? null : parsedWeight,
       energy_level: energy,
+      photo,
     })
     navigate("/onboarding/quiz")
   }
@@ -61,13 +65,28 @@ export function DogProfilePage() {
         accent="coral"
       />
 
-      {/* Foto (la cámara nativa se conecta después con @capacitor/camera) */}
-      <div className="relative mx-auto mb-5 grid size-24 place-items-center rounded-full border-[3px] border-card bg-coral-soft text-coral-deep shadow-sm">
-        <Icon name="pets" fill className="text-4xl" />
-        <span className="absolute -bottom-0.5 -right-0.5 grid size-8 place-items-center rounded-full border-[2.5px] border-card bg-coral-deep text-white">
-          <Icon name="photo_camera" className="text-base" />
-        </span>
+      {/* Foto del perro: abre cámara/galería (con aviso de permiso) y guarda
+          una miniatura. */}
+      <div className="mb-5 flex flex-col items-center">
+        <button
+          type="button"
+          onClick={() => picker.start({ canRemove: !!photo })}
+          aria-label={photo ? "Cambiar foto" : "Subir foto"}
+          className="relative grid size-24 place-items-center overflow-hidden rounded-full border-[3px] border-card bg-coral-soft text-coral-deep shadow-sm"
+        >
+          {picker.busy ? (
+            <Icon name="progress_activity" className="animate-spin text-3xl" />
+          ) : photo ? (
+            <img src={photo} alt="Foto del perro" className="size-full object-cover" />
+          ) : (
+            <Icon name="pets" fill className="text-4xl" />
+          )}
+          <span className="absolute -bottom-0.5 -right-0.5 grid size-8 place-items-center rounded-full border-[2.5px] border-card bg-coral-deep text-white">
+            <Icon name={photo ? "edit" : "photo_camera"} className="text-base" />
+          </span>
+        </button>
       </div>
+      {picker.element}
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
         <InputField

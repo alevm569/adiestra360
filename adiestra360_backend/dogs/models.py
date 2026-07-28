@@ -11,6 +11,10 @@ class Dogs(models.Model):
     weight = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     energy_level = models.CharField(max_length=20, blank=True, null=True)
     training_level = models.IntegerField(blank=True, null=True)
+    # Foto del perro como data URL (miniatura JPEG en base64). Se guarda en la
+    # BD, no en disco, porque el disco de Render es efímero y no hay almacenamiento
+    # de objetos; el front la reduce antes de enviarla para que pese poco.
+    photo = models.TextField(blank=True, null=True)
     # Ranking de refuerzos según la encuesta (coma-separado, del mejor al peor).
     # Se usa para sugerir el siguiente refuerzo cuando el actual no funciona.
     reinforcement_priority = models.TextField(blank=True, null=True)

@@ -6,7 +6,7 @@ import uuid
 class DogSerializer(serializers.ModelSerializer):
     class Meta:
         model = Dogs
-        fields = ['id', 'user', 'name', 'breed', 'age_months', 'weight', 'energy_level', 'training_level', 'created_at']
+        fields = ['id', 'user', 'name', 'breed', 'age_months', 'weight', 'energy_level', 'training_level', 'photo', 'created_at']
         read_only_fields = ['id', 'created_at']
 
     def create(self, validated_data):

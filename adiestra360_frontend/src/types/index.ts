@@ -36,6 +36,8 @@ export interface Dog {
   weight: string | null // DecimalField llega como string en DRF
   energy_level: string | null
   training_level: number | null
+  /** Foto del perro como data URL (miniatura), o null si no subió ninguna. */
+  photo: string | null
   created_at: string
 }
 
@@ -98,6 +100,8 @@ export interface DogDraft {
   age_months: number | null
   weight: number | null
   energy_level: "bajo" | "medio" | "alto"
+  /** Miniatura como data URL, o null si no subió foto. */
+  photo: string | null
 }
 
 /** Body de POST /dogs/create/ */
