@@ -115,8 +115,18 @@ def dashboard(request, dog_id):
         return Response({'error': 'Usuario o perro no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
     # ── Plan activo ──
+    from training.views import get_level_number
     plan = TrainingPlans.objects.filter(dog=dog, active=True).first()
     plan_data = TrainingPlanSerializer(plan).data if plan else None
+
+    # El nivel del perro debe seguir al del plan (fuente de verdad de lo que
+    # entrena hoy). Repara en caliente a los perros que subieron de nivel antes
+    # de que `upgrade_to_next_level` sincronizara este campo.
+    if plan and plan.current_level:
+        plan_level = get_level_number(plan.current_level)
+        if plan_level and dog.training_level != plan_level:
+            dog.training_level = plan_level
+            dog.save(update_fields=['training_level'])
 
     # ── Estadísticas de sesiones ──
     sessions = TrainingSessions.objects.filter(dog=dog)
@@ -131,7 +141,7 @@ def dashboard(request, dog_id):
     last_session = sessions.order_by('-session_date').first()
 
     # ── Progreso por ejercicio ──
-    from training.views import check_exercise_mastered
+    from training.views import check_exercise_mastered, sessions_to_master
     exercise_progress = []
     if plan:
         plan_exercises = TrainingPlanExercises.objects.filter(
@@ -149,6 +159,10 @@ def dashboard(request, dog_id):
                 # Misma regla que el desbloqueo: última sesión Excelente +
                 # constancia (o 1 Excelente si el quiz ya lo marcó dominado).
                 'mastered': check_exercise_mastered(
+                    dog.id, pe.exercise.id, dominated=pe.dominated
+                ),
+                # Sesiones buenas que faltan para superarlo (0 si ya lo está).
+                'sessions_to_master': sessions_to_master(
                     dog.id, pe.exercise.id, dominated=pe.dominated
                 ),
             })

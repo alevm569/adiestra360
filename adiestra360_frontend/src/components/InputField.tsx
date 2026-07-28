@@ -48,6 +48,12 @@ export function InputField({
         {isPassword && (
           <button
             type="button"
+            // preventDefault en el "pointer down" evita que el campo pierda el
+            // foco al tocar el ojo: sin esto, en el móvil el teclado se cierra,
+            // la pantalla se reacomoda hacia abajo y el dedo termina soltando
+            // sobre "Iniciar sesión" → enviaba el formulario sin querer.
+            onPointerDown={(e) => e.preventDefault()}
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => setReveal((v) => !v)}
             aria-label={reveal ? "Ocultar contraseña" : "Mostrar contraseña"}
             aria-pressed={reveal}

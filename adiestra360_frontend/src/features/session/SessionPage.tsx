@@ -38,6 +38,9 @@ export function SessionPage() {
   // Ejercicios a practicar hoy: activos y NO superados (ni por encuesta ni por
   // sesiones). Los superados dejan de aparecer.
   const masteredIds = masteredExerciseIds(data?.exercise_progress)
+  const toMasterById = new Map(
+    (data?.exercise_progress ?? []).map((p) => [p.exercise_id, p.sessions_to_master])
+  )
   const todo = (data?.plan?.exercises ?? [])
     .filter((e) => e.active && !isSuperado(e, masteredIds))
     .sort((a, b) => (a.order_number ?? 0) - (b.order_number ?? 0))
@@ -125,6 +128,7 @@ export function SessionPage() {
             <ExerciseChecklist
               key={e.id}
               item={e}
+              toMaster={toMasterById.get(e.exercise.id)}
               trained={!!trained[e.id]}
               checked={checked[e.id] ?? new Set()}
               onToggleTrained={() => toggleTrained(e.id)}
@@ -185,12 +189,14 @@ export function SessionPage() {
 
 function ExerciseChecklist({
   item,
+  toMaster,
   trained,
   checked,
   onToggleTrained,
   onToggleCriterion,
 }: {
   item: PlanExerciseItem
+  toMaster: number | undefined
   trained: boolean
   checked: Set<number>
   onToggleTrained: () => void
@@ -220,6 +226,16 @@ function ExerciseChecklist({
           Cómo
         </Link>
       </div>
+
+      {/* Cuánto falta para superarlo (misma regla que el desbloqueo). */}
+      {toMaster != null && toMaster > 0 && (
+        <p className="mt-2 flex items-center gap-1.5 rounded-xl bg-muted px-2.5 py-1.5 text-[11px] font-bold text-muted-foreground">
+          <Icon name="flag" fill className="flex-none text-sm text-primary-deep" />
+          {toMaster === 1
+            ? "Con 1 sesión exitosa más (excelente) queda superado"
+            : `Faltan ${toMaster} sesiones exitosas para superarlo`}
+        </p>
+      )}
 
       {/* Toggle: ¿lo entrenaste hoy? Revela el checklist. */}
       <button

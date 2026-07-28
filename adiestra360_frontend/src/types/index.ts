@@ -160,6 +160,8 @@ export interface ExerciseProgress {
   total_sessions: number
   success_rate: number
   mastered: boolean
+  /** Sesiones buenas que faltan para superarlo (0 si ya lo está). */
+  sessions_to_master: number
 }
 
 /** Una sesión registrada (GET /sessions/<dog_id>/). */

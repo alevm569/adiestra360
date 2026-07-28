@@ -64,6 +64,40 @@ def check_exercise_mastered(dog_id, exercise_id, dominated=False):
     return (success_count / UNLOCK_SESSION_COUNT) >= UNLOCK_SUCCESS_THRESHOLD
 
 
+def sessions_to_master(dog_id, exercise_id, dominated=False):
+    """
+    Cuántas sesiones buenas faltan para superar el ejercicio, con la MISMA regla
+    que `check_exercise_mastered`. 0 si ya está superado.
+
+    - Dominado por la encuesta: basta 1 sesión Excelente.
+    - Normal: 3 sesiones exitosas seguidas, la última Excelente. El conteo es un
+      mínimo: asume que las sesiones que faltan serán exitosas y que la última
+      será Excelente (así es como se llega a superarlo).
+    """
+    sessions = list(
+        TrainingSessions.objects.filter(dog_id=dog_id, exercise_id=exercise_id)
+        .order_by('-session_date')
+    )
+    latest = sessions[0] if sessions else None
+
+    if dominated:
+        return 0 if (latest and session_is_excellent(latest)) else 1
+
+    # Éxitos consecutivos desde la sesión más reciente.
+    trailing = 0
+    for s in sessions:
+        if s.success:
+            trailing += 1
+        else:
+            break
+
+    remaining = max(0, UNLOCK_SESSION_COUNT - trailing)
+    # Aunque ya haya 3 éxitos seguidos, la última debe ser Excelente.
+    if remaining == 0 and not (latest and session_is_excellent(latest)):
+        remaining = 1
+    return remaining
+
+
 def get_level_number(level):
     """
     Extrae el número de un nivel a partir de su nombre (p.ej. 'Nivel 2' → 2).
@@ -175,6 +209,10 @@ def upgrade_to_next_level(dog, plan):
     # Actualizar plan al nuevo nivel
     plan.current_level = next_level
     plan.save()
+
+    # El nivel del perro sigue al del plan (lo muestra la tarjeta del inicio).
+    dog.training_level = get_level_number(next_level) or dog.training_level
+    dog.save(update_fields=['training_level'])
 
     # Los ejercicios del nivel anterior se conservan pero quedan inactivos
     # (no se eliminan ni se reemplazan).
