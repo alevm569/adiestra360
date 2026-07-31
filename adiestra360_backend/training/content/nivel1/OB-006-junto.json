@@ -4,7 +4,7 @@
   "nombre": "Junto",
   "categoria": "Obediencia básica",
   "nivel": "Principiante",
-  "prerrequisito": "Dominar Siéntate (OB-001). Se recomienda también Quédate (OB-003) y Aquí (OB-005).",
+  "prerrequisito": "Dominar Siéntate (OB-001). También se recomienda dominar Quédate (OB-003) y Aquí (OB-005).",
   "objetivo": "Enseñar al perro a caminar junto al guía manteniendo una posición controlada al lado izquierdo, siguiendo el mismo ritmo de marcha, sin adelantarse, retrasarse ni generar tensión sobre la correa.",
   "duracion": "3–5 minutos por sesión",
   "frecuencia": "2 o 3 sesiones al día",
@@ -13,7 +13,7 @@
     "Atención constante hacia el guía.",
     "Control de impulsos durante la marcha.",
     "Coordinación del movimiento.",
-    "Seguimiento de ritmo."
+    "Seguimiento del ritmo."
   ],
 
   "materiales": ["Collar", "Correa", "Premios", "Riñonera"],
@@ -22,7 +22,7 @@
     "El perro inicia siempre desde la posición base: sentado a tu lado izquierdo.",
     "La correa se sostiene con la mano derecha, siempre con una ligera holgura.",
     "La correa permanece relajada durante todo el ejercicio.",
-    "La orden verbal se pronuncia una sola vez.",
+    "Pronuncia la orden verbal una sola vez.",
     "El premio únicamente aparece cuando la marcha es correcta."
   ],
 
@@ -30,13 +30,13 @@
     {
       "order": 1,
       "title": "Posición base",
-      "text": "Comienza con el perro sentado a tu lado izquierdo. Sostén la correa con la mano derecha manteniendo una ligera holgura; la mano izquierda queda libre para usar el premio cuando sea necesario. Se parte siempre de una posición conocida y consistente.",
+      "text": "Comienza con el perro sentado a tu lado izquierdo. Sostén la correa con la mano derecha, manteniendo una ligera holgura; la mano izquierda queda libre para usar el premio cuando sea necesario. Se parte siempre de una posición conocida y consistente.",
       "image": "/tecnicas/OB-006-01.png"
     },
     {
       "order": 2,
       "title": "Dar la orden",
-      "text": "Pronuncia claramente «Junto» y, al mismo tiempo, realiza una palmada suave sobre tu pierna izquierda. Esta señal ayuda al perro a identificar que comenzará la caminata en posición de junto.",
+      "text": "Pronuncia claramente «Junto» y, al mismo tiempo, realiza una palmada suave sobre tu pierna izquierda. Esta señal ayuda al perro a identificar que comenzará la caminata en la posición de junto.",
       "image": "/tecnicas/OB-006-02.png"
     },
     {
@@ -48,11 +48,11 @@
     {
       "order": 4,
       "title": "Mantener la posición",
-      "text": "Durante toda la caminata el perro debe permanecer a tu lado izquierdo, paralelo y al mismo ritmo. Como referencia, únicamente su cabeza puede sobrepasar ligeramente la línea de tus pies; el resto del cuerpo no debe adelantarse. La correa permanece relajada en todo momento.",
+      "text": "Durante toda la caminata, el perro debe permanecer a tu lado izquierdo, paralelo y al mismo ritmo. Como referencia, únicamente su cabeza puede sobrepasar ligeramente la línea de tus pies; el resto del cuerpo no debe adelantarse. La correa permanece relajada en todo momento.",
       "image": "/tecnicas/OB-006-04.png",
       "alternative": {
         "title": "Con golosina como guía",
-        "text": "Lleva un premio en la mano izquierda, cerca del hocico del perro mientras caminan. El perro seguirá el olor y se mantendrá concentrado a tu lado sin adelantarse ni tirar. El premio funciona solo como guía temporal y debe retirarse de forma progresiva.",
+        "text": "Lleva un premio en la mano izquierda, cerca del hocico del perro, mientras caminan. El perro seguirá el olor y se mantendrá concentrado a tu lado sin adelantarse ni tirar de la correa. El premio funciona solo como guía temporal y debe retirarse de forma progresiva.",
         "image": "/tecnicas/OB-006-06.png",
         "when": "En las primeras etapas, si al perro le cuesta concentrarse o tiende a adelantarse."
       }
@@ -60,7 +60,7 @@
     {
       "order": 5,
       "title": "Corregir cuando sea necesario",
-      "text": "Si el perro se adelanta o genera tensión sobre la correa, pronuncia un «No», realiza una corrección suave con el collar y repite la orden «Junto». La corrección debe ser breve y servir solo para recuperar su atención; luego continúa caminando con normalidad.",
+      "text": "Si el perro se adelanta o genera tensión sobre la correa, pronuncia «No», realiza una corrección suave con el collar y repite la orden «Junto». La corrección debe ser breve y servir solo para recuperar su atención; luego, continúa caminando con normalidad.",
       "image": "/tecnicas/OB-006-05.png"
     },
     {
@@ -86,7 +86,7 @@
     },
     {
       "error": "Premiar aunque el perro esté adelantado.",
-      "correccion": "Solo reforzar cuando la posición sea correcta y la caminata sea tranquila."
+      "correccion": "Solo refuerza cuando la posición sea correcta y la caminata sea tranquila."
     }
   ],
 
