@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils"
 import { Icon } from "@/components/Icon"
 import { Button } from "@/components/ui/button"
 import { useValidationMetrics } from "./api"
-import type { MetricsSegment, ValidationMetrics } from "@/types"
+import type { MetricsSegment, UsageMetrics, ValidationMetrics } from "@/types"
 
 type SegmentKey = "real" | "simulated" | "combined"
 
@@ -148,7 +148,7 @@ function Segment({ segment }: { segment: MetricsSegment }) {
         />
       </div>
 
-      <MultiDogNote users={u.users} dogs={u.dogs} />
+      <MultiDogNote usage={u} />
 
       <SectionTitle>Cuestionario SUS</SectionTitle>
       <SusCard segment={segment} />
@@ -189,8 +189,12 @@ function Segment({ segment }: { segment: MetricsSegment }) {
  * análisis del SUS y de la gamificación es la persona; la del entrenamiento,
  * el perro. Se explica en el panel para que nadie interprete
  * "sesiones/usuario" como "sesiones por perro".
+ *
+ * Encabeza con el conteo de cuántos dueños son, para saber de un vistazo si la
+ * advertencia afecta a la mitad de la muestra o a nadie.
  */
-function MultiDogNote({ users, dogs }: { users: number; dogs: number }) {
+function MultiDogNote({ usage }: { usage: UsageMetrics }) {
+  const { users, dogs, multi_dog_users: multi, max_dogs_per_user: max } = usage
   const [open, setOpen] = useState(false)
   return (
     <div className="mt-2.5 rounded-2xl border border-border bg-card p-3.5 shadow-sm">
@@ -198,12 +202,20 @@ function MultiDogNote({ users, dogs }: { users: number; dogs: number }) {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex w-full items-center gap-2 text-left"
+        className="flex w-full items-center gap-2.5 text-left"
       >
         <Icon name="info" fill className="text-lg text-sky-deep" />
-        <b className="flex-1 text-xs font-extrabold uppercase tracking-wider text-muted-foreground">
-          Usuarios con más de un perro
-        </b>
+        <span className="flex-1">
+          <b className="block text-xs font-extrabold uppercase tracking-wider text-muted-foreground">
+            Usuarios con más de un perro
+          </b>
+          <b className="mt-0.5 block font-display text-xl">
+            {multi}
+            <span className="ml-1 text-xs font-extrabold text-muted-foreground">
+              de {users} ({pct(share(multi, users))})
+            </span>
+          </b>
+        </span>
         <Icon
           name={open ? "expand_less" : "expand_more"}
           className="text-lg text-muted-foreground"
@@ -211,6 +223,11 @@ function MultiDogNote({ users, dogs }: { users: number; dogs: number }) {
       </button>
       {open && (
         <ul className="mt-2 flex flex-col gap-1.5 text-xs font-semibold text-muted-foreground">
+          <li>
+            <b className="text-foreground">{multi} usuario(s)</b> tienen 2 o más
+            perros registrados{max > 1 && ` (el máximo es ${max})`}; el resto tiene
+            uno o ninguno.
+          </li>
           <li>
             <b className="text-foreground">Sesiones, tasa de éxito y criterios</b> suman
             los perros del usuario: quien entrena a dos o tres aporta las sesiones de
@@ -242,6 +259,10 @@ function MultiDogNote({ users, dogs }: { users: number; dogs: number }) {
 /** Relación perros/usuarios del segmento (p. ej. "1.5 perros por usuario"). */
 const dogsPerUser = (users: number, dogs: number) =>
   users > 0 ? `${Math.round((dogs / users) * 10) / 10} perros por usuario` : "sin usuarios"
+
+/** Porcentaje que representa `part` sobre `total`, redondeado a un decimal. */
+const share = (part: number, total: number) =>
+  total > 0 ? Math.round((part / total) * 1000) / 10 : 0
 
 function SusCard({ segment }: { segment: MetricsSegment }) {
   const s = segment.sus

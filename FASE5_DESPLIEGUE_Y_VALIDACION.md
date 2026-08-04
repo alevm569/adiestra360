@@ -123,6 +123,9 @@ elimina en cascada todos los datos simulados anteriores.
   activos, rachas, XP, ejercicios dominados, cumplimiento de criterios, resumen
   SUS (media, adjetivo, distribución, % sobre la media de industria 68) y tasa
   de éxito por ejercicio.
+- La tarjeta **Usuarios con más de un perro** muestra el conteo de dueños con 2
+  o más perros (`multi_dog_users`, `max_dogs_per_user`) y, al desplegarla,
+  cómo leer cada media cuando la muestra los tiene.
 - Endpoint: `GET /api/validation/metrics/`.
 
 ### 3.4 Exportación para el informe
@@ -141,6 +144,45 @@ python manage.py export_metrics --format json --output metricas.json
 ```
 python manage.py test validation
 ```
+
+## 4. Recuperación de contraseña
+
+Flujo público en `/recuperar` (enlace "¿Olvidaste tu contraseña?" en el login):
+el usuario escribe su correo, recibe un **código de 6 dígitos** y lo usa junto
+con la contraseña nueva. Se eligió código y no enlace porque la app corre como
+PWA y como APK de Capacitor: un enlace del correo sacaría al usuario de la app
+instalada.
+
+- Endpoints: `POST /api/auth/password-reset/` y
+  `POST /api/auth/password-reset/confirm/`.
+- El código se guarda **hasheado**, es de un solo uso, caduca a los 15 minutos,
+  muere tras 5 intentos fallidos y se invalida al pedir uno nuevo. Pedir código
+  para un correo inexistente responde igual que para uno real (no se puede
+  averiguar quién está registrado). Solo se envía un correo por minuto y correo.
+
+### Configurar el envío (Gmail)
+
+1. En la cuenta de Google que va a enviar: activar la **verificación en dos
+   pasos** y crear una **contraseña de aplicación**
+   (`myaccount.google.com/apppasswords`). Es una clave de 16 caracteres, **no**
+   la contraseña normal de la cuenta.
+2. Añadir estas variables en Render (Environment):
+
+   ```
+   EMAIL_HOST_USER      = tucorreo@gmail.com
+   EMAIL_HOST_PASSWORD  = <contraseña de aplicación>
+   DEFAULT_FROM_EMAIL   = Adiestra360 <tucorreo@gmail.com>
+   ```
+
+   `EMAIL_HOST=smtp.gmail.com`, `EMAIL_PORT=587` y `EMAIL_USE_TLS=True` ya son
+   los valores por defecto. Opcionales:
+   `PASSWORD_RESET_CODE_TTL_MINUTES`, `PASSWORD_RESET_MAX_ATTEMPTS`,
+   `PASSWORD_RESET_RESEND_SECONDS`.
+
+3. En local, si `EMAIL_HOST_USER` está vacío el correo se **imprime en la
+   consola** de `runserver`: el código se lee ahí y no hace falta SMTP.
+
+Pruebas: `python manage.py test users`.
 
 Cubre el scoring SUS, el upsert de la encuesta y el gateado por email del panel.
 

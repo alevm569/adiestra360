@@ -16,6 +16,22 @@ interface RegisterPayload {
   research_consent: boolean
 }
 
+interface PasswordResetRequestPayload {
+  email: string
+}
+
+interface PasswordResetConfirmPayload {
+  email: string
+  code: string
+  new_password: string
+}
+
+/** Respuesta de POST /auth/password-reset/ (siempre genérica). */
+interface PasswordResetRequestResponse {
+  message: string
+  expires_in_minutes: number
+}
+
 async function loginRequest(payload: LoginPayload): Promise<AuthResponse> {
   const { data } = await api.post<AuthResponse>("/auth/login/", payload)
   return data
@@ -42,4 +58,42 @@ export function useRegister() {
     mutationFn: registerRequest,
     onSuccess: (data) => setAuth(data.tokens, data.user),
   })
+}
+
+/** Paso 1 de la recuperación: pide el código de 6 dígitos por correo. */
+export function useRequestPasswordReset() {
+  return useMutation({
+    mutationFn: async (payload: PasswordResetRequestPayload) => {
+      const { data } = await api.post<PasswordResetRequestResponse>(
+        "/auth/password-reset/",
+        payload
+      )
+      return data
+    },
+  })
+}
+
+/**
+ * Paso 2: cambia la contraseña con el código. El backend devuelve tokens, así
+ * que el usuario entra directo sin volver a escribir lo que acaba de crear.
+ */
+export function useConfirmPasswordReset() {
+  const setAuth = useAuth((s) => s.setAuth)
+  return useMutation({
+    mutationFn: async (payload: PasswordResetConfirmPayload) => {
+      const { data } = await api.post<AuthResponse>(
+        "/auth/password-reset/confirm/",
+        payload
+      )
+      return data
+    },
+    onSuccess: (data) => setAuth(data.tokens, data.user),
+  })
+}
+
+/** Mensaje de error del backend (campo `error`) o uno genérico de respaldo. */
+export function apiErrorMessage(error: unknown, fallback: string): string {
+  const detail = (error as { response?: { data?: { error?: string } } })?.response
+    ?.data?.error
+  return detail || fallback
 }

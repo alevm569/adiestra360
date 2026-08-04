@@ -351,6 +351,10 @@ export type SurveySubmission = Record<`q${number}`, number> & {
 export interface UsageMetrics {
   users: number
   dogs: number
+  /** Dueños con 2 o más perros registrados. */
+  multi_dog_users: number
+  /** Cuántos perros tiene el dueño con más perros del segmento. */
+  max_dogs_per_user: number
   total_sessions: number
   success_rate: number
   criteria_completion_rate: number | null

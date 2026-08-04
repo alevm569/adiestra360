@@ -53,3 +53,30 @@ class UserStreaks(models.Model):
 
     class Meta:
         db_table = 'user_streaks'
+
+
+class PasswordResetCodes(models.Model):
+    """
+    Código de un solo uso para recuperar la contraseña.
+
+    Se guarda **hasheado** (nunca en claro): si alguien leyera la base de datos
+    no podría usar los códigos pendientes. Caduca a los
+    `PASSWORD_RESET_CODE_TTL_MINUTES` y se invalida al primer uso o tras
+    `PASSWORD_RESET_MAX_ATTEMPTS` intentos fallidos.
+    """
+    id = models.CharField(primary_key=True, max_length=36, default=uuid.uuid4)
+    user = models.ForeignKey(Users, models.CASCADE, related_name='password_reset_codes')
+    code_hash = models.CharField(max_length=255)
+    expires_at = models.DateTimeField()
+    attempts = models.IntegerField(default=0)
+    used_at = models.DateTimeField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'password_reset_codes'
+        indexes = [
+            models.Index(fields=['user', 'used_at'], name='pwd_reset_user_used_idx'),
+        ]
+
+    def is_usable(self, now):
+        return self.used_at is None and self.expires_at > now

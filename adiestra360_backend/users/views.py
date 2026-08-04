@@ -1,3 +1,4 @@
+from django.conf import settings
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -5,8 +6,12 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Users, UserStreaks
 from .serializers import RegisterSerializer, UserSerializer, UserStreakSerializer
+from . import password_reset
 from training.constants import SIENTATE, ECHATE, AQUI, QUEDATE, LUGAR, JUNTO
+import logging
 import uuid
+
+logger = logging.getLogger(__name__)
 
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
@@ -64,6 +69,95 @@ def login(request):
         'streak': UserStreakSerializer(streak).data if streak else None,
         'tokens': tokens
     }, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def password_reset_request(request):
+    """
+    Paso 1: envía un código de 6 dígitos al correo indicado.
+
+    Responde siempre 200 con el mismo mensaje, exista o no el correo: así la
+    pantalla no sirve para averiguar qué correos están registrados.
+    """
+    email = (request.data.get('email') or '').strip()
+    if not email:
+        return Response({'error': 'El correo es requerido'},
+                        status=status.HTTP_400_BAD_REQUEST)
+
+    generic = {
+        'message': 'Si el correo está registrado, te enviamos un código para '
+                   'restablecer tu contraseña.',
+        'expires_in_minutes': settings.PASSWORD_RESET_CODE_TTL_MINUTES,
+    }
+
+    user = Users.objects.filter(email__iexact=email).first()
+    if user is None or password_reset.recently_requested(user):
+        # Sin usuario no hay nada que enviar; con envío reciente, se ignora
+        # para no repetir correos. En ambos casos la respuesta es la misma.
+        return Response(generic, status=status.HTTP_200_OK)
+
+    code = password_reset.create_code(user)
+    try:
+        password_reset.send_code_email(user, code)
+    except Exception:
+        # Si el correo no sale (SMTP caído o mal configurado), avisamos: sin
+        # esto el usuario esperaría un código que nunca va a llegar.
+        logger.exception('Fallo al enviar el código de recuperación')
+        return Response(
+            {'error': 'No pudimos enviar el correo en este momento. '
+                      'Inténtalo de nuevo en unos minutos.'},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+
+    return Response(generic, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def password_reset_confirm(request):
+    """
+    Paso 2: valida el código y cambia la contraseña.
+
+    Al terminar deja al usuario dentro (devuelve tokens) para que no tenga que
+    escribir de nuevo la contraseña que acaba de crear.
+    """
+    email = (request.data.get('email') or '').strip()
+    code = (request.data.get('code') or '').strip()
+    new_password = request.data.get('new_password') or ''
+
+    if not email or not code or not new_password:
+        return Response(
+            {'error': 'Correo, código y nueva contraseña son requeridos'},
+            status=status.HTTP_400_BAD_REQUEST)
+
+    if len(new_password) < 6:
+        return Response(
+            {'error': 'La contraseña debe tener al menos 6 caracteres'},
+            status=status.HTTP_400_BAD_REQUEST)
+
+    user = Users.objects.filter(email__iexact=email).first()
+    if user is None:
+        # Mismo mensaje que un código equivocado: no confirma si el correo existe.
+        return Response({'error': 'Código incorrecto o caducado.'},
+                        status=status.HTTP_400_BAD_REQUEST)
+
+    entry, error = password_reset.verify_code(user, code)
+    if error:
+        return Response({'error': error}, status=status.HTTP_400_BAD_REQUEST)
+
+    user.set_password(new_password)
+    user.save(update_fields=['password'])
+    password_reset.consume(entry)
+
+    tokens = get_tokens_for_user(user)
+    streak = UserStreaks.objects.filter(user=user).first()
+    return Response({
+        'message': 'Contraseña actualizada',
+        'user': UserSerializer(user).data,
+        'streak': UserStreakSerializer(streak).data if streak else None,
+        'tokens': tokens,
+    }, status=status.HTTP_200_OK)
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

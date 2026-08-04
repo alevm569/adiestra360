@@ -79,6 +79,13 @@ export function LoginPage() {
             required
           />
 
+          <Link
+            to="/recuperar"
+            className="-mt-1 self-end text-xs font-extrabold text-primary-deep"
+          >
+            ¿Olvidaste tu contraseña?
+          </Link>
+
           {login.isError && (
             <p className="text-sm font-semibold text-destructive">
               Credenciales inválidas. Revisa tu correo y contraseña.

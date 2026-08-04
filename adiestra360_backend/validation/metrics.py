@@ -84,6 +84,14 @@ def _usage_metrics(user_ids):
     dog_ids = list(dogs.values_list('id', flat=True))
     sessions = TrainingSessions.objects.filter(dog_id__in=dog_ids)
 
+    # Cuántos perros tiene cada dueño: sirve para saber a cuánta gente le
+    # aplican las notas de interpretación de "usuarios con más de un perro".
+    dogs_by_user = {}
+    for uid in dogs.values_list('user_id', flat=True):
+        dogs_by_user[uid] = dogs_by_user.get(uid, 0) + 1
+    multi_dog_users = sum(1 for n in dogs_by_user.values() if n > 1)
+    max_dogs_per_user = max(dogs_by_user.values(), default=0)
+
     total_sessions = sessions.count()
     successes = sessions.filter(success=True).count()
     success_rate = _round(successes / total_sessions * 100) if total_sessions else 0.0
@@ -122,6 +130,8 @@ def _usage_metrics(user_ids):
     return {
         'users': n_users,
         'dogs': len(dog_ids),
+        'multi_dog_users': multi_dog_users,
+        'max_dogs_per_user': max_dogs_per_user,
         'total_sessions': total_sessions,
         'success_rate': success_rate,
         'criteria_completion_rate': criteria_completion,

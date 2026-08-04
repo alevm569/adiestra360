@@ -7,8 +7,9 @@ gateado por email del panel de métricas.
 from django.test import override_settings
 from rest_framework.test import APITestCase
 
-from testkit import make_user, auth_client
+from testkit import make_user, auth_client, create_dog
 from .constants import compute_sus_score, is_simulated_email, SIMULATED_EMAIL_DOMAIN
+from .metrics import build_metrics
 from .models import SurveyResponses
 
 
@@ -97,6 +98,36 @@ class MetricsPermissionTests(APITestCase):
             self.assertIn('combined', res.data)
         finally:
             os.environ.pop('VALIDATION_ADMIN_EMAILS', None)
+
+
+class MultiDogCountTests(APITestCase):
+    """
+    El panel muestra a cuánta gente le aplican las notas de "más de un perro",
+    así que el conteo debe ser de dueños, no de perros.
+    """
+
+    def test_counts_owners_with_more_than_one_dog(self):
+        uno = make_user(email='uno@test.com', name='Uno')
+        dos = make_user(email='dos@test.com', name='Dos')
+        tres = make_user(email='tres@test.com', name='Tres')
+        create_dog(uno, name='Luna')
+        create_dog(dos, name='Rocky')
+        create_dog(dos, name='Toby')
+        create_dog(tres, name='Kira')
+        create_dog(tres, name='Nala')
+        create_dog(tres, name='Zeus')
+
+        usage = build_metrics()['combined']['usage']
+        self.assertEqual(usage['users'], 3)
+        self.assertEqual(usage['dogs'], 6)
+        self.assertEqual(usage['multi_dog_users'], 2)
+        self.assertEqual(usage['max_dogs_per_user'], 3)
+
+    def test_zero_when_nobody_has_dogs(self):
+        make_user(email='solo@test.com', name='Solo')
+        usage = build_metrics()['combined']['usage']
+        self.assertEqual(usage['multi_dog_users'], 0)
+        self.assertEqual(usage['max_dogs_per_user'], 0)
 
 
 class SimulatedEmailTests(APITestCase):

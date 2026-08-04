@@ -185,6 +185,29 @@ CORS_ALLOW_CREDENTIALS = True
 
 AUTH_USER_MODEL = 'users.Users'
 
+# --- Correo (recuperación de contraseña) ---
+# Con EMAIL_HOST_USER definido se envía por SMTP (Gmail con contraseña de
+# aplicación). Sin él, el correo se imprime en la consola: así el flujo se
+# puede probar en local sin credenciales.
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_TIMEOUT = 15
+EMAIL_BACKEND = (
+    'django.core.mail.backends.smtp.EmailBackend' if EMAIL_HOST_USER
+    else 'django.core.mail.backends.console.EmailBackend'
+)
+DEFAULT_FROM_EMAIL = os.getenv(
+    'DEFAULT_FROM_EMAIL', f'Adiestra360 <{EMAIL_HOST_USER or "no-reply@adiestra360.app"}>')
+
+# Recuperación de contraseña: código de 6 dígitos de un solo uso.
+PASSWORD_RESET_CODE_TTL_MINUTES = int(os.getenv('PASSWORD_RESET_CODE_TTL_MINUTES', '15'))
+PASSWORD_RESET_MAX_ATTEMPTS = int(os.getenv('PASSWORD_RESET_MAX_ATTEMPTS', '5'))
+# Espera mínima entre envíos al mismo correo (evita usarnos como spam).
+PASSWORD_RESET_RESEND_SECONDS = int(os.getenv('PASSWORD_RESET_RESEND_SECONDS', '60'))
+
 # --- Seguridad en producción (solo cuando DEBUG=False) ---
 if not DEBUG:
     # Railway/PaaS termina TLS en un proxy; confía en la cabecera de esquema.
