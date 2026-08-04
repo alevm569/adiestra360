@@ -27,8 +27,8 @@
   "reglas": [
     "El perro inicia siempre desde la posición base: sentado a tu lado izquierdo.",
     "La correa debe permanecer relajada antes de iniciar el ejercicio.",
-    "Pronunciar la orden una sola vez.",
-    "Señalar claramente el lugar antes de iniciar el desplazamiento.",
+    "Pronuncia la orden una sola vez.",
+    "Señala claramente el lugar antes de iniciar el desplazamiento.",
     "El premio siempre se entrega cuando el perro ya está correctamente echado en su lugar."
   ],
 
@@ -60,7 +60,7 @@
     {
       "order": 5,
       "title": "Solicitar el echado",
-      "text": "Pronuncia «Échate». El perro debe acostarse sobre la cama manteniendo la alineación contigo: cuerpo paralelo y cabeza al frente. Permite que permanezca echado unos segundos: ese espacio empieza a convertirse en «su lugar».",
+      "text": "Pronuncia «Échate». El perro debe echarse sobre la cama manteniendo la alineación contigo: cuerpo paralelo y cabeza al frente. Permite que permanezca echado durante unos segundos; ese espacio empieza a convertirse en «su lugar».",
       "image": "/tecnicas/OB-004-05.png"
     },
     {
@@ -78,7 +78,7 @@
     },
     {
       "error": "Comenzar a caminar antes de pronunciar la orden.",
-      "correccion": "Primero la orden, después el movimiento."
+      "correccion": "Primero da la orden y después inicia el movimiento."
     },
     {
       "error": "Premiar antes de que el perro se eche.",
@@ -86,7 +86,7 @@
     },
     {
       "error": "Retirar de inmediato al perro del lugar.",
-      "correccion": "Permite que permanezca unos segundos para fortalecer la asociación con el espacio."
+      "correccion": "Permite que permanezca unos segundos para fortalecer la asociación con ese espacio."
     }
   ],
 

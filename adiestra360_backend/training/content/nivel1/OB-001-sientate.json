@@ -5,7 +5,7 @@
   "categoria": "Obediencia básica",
   "nivel": "Principiante",
   "prerrequisito": null,
-  "objetivo": "Enseñar al perro a sentarse correctamente utilizando primero una guía mecánica y posteriormente una guía con golosina, reforzando únicamente la postura correcta.",
+  "objetivo": "Enseñar al perro a sentarse correctamente utilizando primero una guía mecánica y, posteriormente, una guía con golosina, reforzando únicamente la postura correcta.",
   "duracion": "3–5 minutos por sesión",
   "frecuencia": "2 o 3 sesiones al día",
 
@@ -23,7 +23,7 @@
     "Nunca empujes al perro.",
     "Nunca tires bruscamente del collar.",
     "Premia únicamente cuando la postura sea correcta.",
-    "Si la postura es incorrecta, primero ayúdalo a corregirse y luego recompensa."
+    "Si la postura es incorrecta, primero ayúdalo a corregirse y luego recompénsalo."
   ],
 
   "steps": [
@@ -36,11 +36,11 @@
     {
       "order": 2,
       "title": "Dar la orden y guía mecánica",
-      "text": "Pronuncia una sola vez «Siéntate» con voz clara y tranquila; espera unos instantes. Luego levanta suavemente el collar mientras colocas la mano libre sobre la cadera del perro para guiar el movimiento hacia atrás y abajo. La ayuda debe ser ligera: orientas el movimiento, no lo fuerzas.",
+      "text": "Pronuncia una sola vez «Siéntate» con voz clara y tranquila; espera unos instantes. Luego, levanta suavemente el collar mientras colocas la mano libre sobre la cadera del perro para guiar el movimiento hacia atrás y hacia abajo. La ayuda debe ser ligera: orienta el movimiento, no lo fuerces.",
       "image": "/tecnicas/OB-001-02.png",
       "alternative": {
         "title": "Con golosina",
-        "text": "Sostén una golosina frente al hocico de el perro y muévela lentamente hacia arriba y ligeramente hacia atrás para que siga el movimiento con la cabeza hasta sentarse. Cuando se siente correctamente, entrega la recompensa.",
+        "text": "Sostén una golosina frente al hocico del perro y muévela lentamente hacia arriba y ligeramente hacia atrás para que siga el movimiento con la cabeza hasta sentarse. Cuando se siente correctamente, entrega la recompensa.",
         "image": "/tecnicas/OB-001-06.png",
         "when": "Si el perro se motiva más con comida o si no usas cadena."
       }
@@ -48,20 +48,20 @@
     {
       "order": 3,
       "title": "Verificar la postura",
-      "text": "Comprueba que la espalda esté recta, las patas delanteras alineadas, las traseras recogidas bajo el cuerpo, el peso equilibrado y el perro paralela a ti. Si la postura no es correcta, ayúdala a acomodarse antes de continuar.",
+      "text": "Comprueba que la espalda esté recta, las patas delanteras alineadas, las traseras recogidas bajo el cuerpo, el peso equilibrado y el perro paralelo a ti. Si la postura no es correcta, ayúdalo a acomodarse antes de continuar.",
       "image": "/tecnicas/OB-001-04.png"
     },
     {
       "order": 4,
       "title": "Reforzar",
-      "text": "Si el perro está torcido, en el momento exacto en el que adopte la posición correcta, felicítalo y entrega el premio. El refuerzo inmediato es lo que construye el aprendizaje.",
+      "text": "Si el perro está torcido, en el momento exacto en que adopte la posición correcta, felicítalo y entrégale el premio. El refuerzo inmediato es lo que construye el aprendizaje.",
       "image": "/tecnicas/OB-001-05.png"
     }
   ],
 
   "errores_comunes": [
     {
-      "error": "Premiar cuando el perro está sentada torcida.",
+      "error": "Premiar cuando el perro está sentado de forma torcida.",
       "correccion": "Espera a que adopte una postura alineada y paralela a la entrenadora antes de reforzar."
     },
     {

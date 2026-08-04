@@ -20,22 +20,22 @@
 
   "reglas": [
     "El perro inicia el ejercicio quieto.",
-    "La orden verbal se pronuncia una sola vez.",
-    "El premio se entrega solo cuando el perro ya reconstruyó la posición base.",
-    "Mantener siempre una actitud positiva."
+    "Pronuncia la orden verbal una sola vez.",
+    "El premio se entrega solo cuando el perro ya ha reconstruido la posición base.",
+    "Mantén siempre una actitud positiva."
   ],
 
   "steps": [
     {
       "order": 1,
       "title": "Preparación",
-      "text": "Coloca al perro frente a ti en orden échate, a una distancia corta. El perro permanece quieto, la correa relajada y tú mantienes contacto visual. Se prepara un llamado sencillo y exitoso.",
+      "text": "Coloca al perro frente a ti en posición de echado, a una distancia corta. El perro permanece quieto, con la correa relajada, mientras mantienes contacto visual con él. Se prepara un llamado sencillo y exitoso.",
       "image": "/tecnicas/OB-005-01.png"
     },
     {
       "order": 2,
       "title": "Dar la orden",
-      "text": "Pronuncia claramente «Aquí» una sola vez. Puedes acompañar la llamada con un gesto amigable de la mano derecha para invitarlo a venir.",
+      "text": "Pronuncia claramente «Aquí» una sola vez. Puedes acompañar la llamada con un gesto amigable de la mano derecha para invitarlo a acercarse.",
       "image": "/tecnicas/OB-005-02.png"
     },
     {
@@ -47,7 +47,7 @@
     {
       "order": 4,
       "title": "Llegada",
-      "text": "Cuando el perro llegue hasta ti, premia y pronunca «Junto» para que el perro se incorpore correctamente a la posición base.",
+      "text": "Cuando el perro llegue hasta ti, pronuncia «Junto» para que adopte correctamente la posición base.",
       "image": "/tecnicas/OB-005-04.png"
     },
     {
@@ -59,7 +59,7 @@
     {
       "order": 6,
       "title": "Reforzar",
-      "text": "Una vez reconstruida correctamente la posición base, entrega el premio de inmediato. El refuerzo debe producirse exactamente cuando la posición final es correcta.",
+      "text": "Una vez reconstruida correctamente la posición base, entrega el premio de inmediato. El refuerzo debe producirse exactamente cuando la posición final sea correcta.",
       "image": "/tecnicas/OB-005-06.png"
     }
   ],
@@ -71,7 +71,7 @@
     },
     {
       "error": "Permitir que el perro quede delante de ti.",
-      "correccion": "Siempre finalizar al lado izquierdo."
+      "correccion": "Finaliza siempre con el perro a tu lado izquierdo."
     }
   ],
 
