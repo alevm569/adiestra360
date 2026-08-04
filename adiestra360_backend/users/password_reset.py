@@ -60,7 +60,12 @@ def create_code(user):
 
 
 def send_code_email(user, code):
-    """Envía el código al correo del usuario. No revienta si el SMTP falla."""
+    """
+    Envía el código al correo del usuario.
+
+    Propaga la excepción si el envío falla (`fail_silently=False`): la vista
+    necesita enterarse para avisar en vez de fingir que el correo salió.
+    """
     minutes = settings.PASSWORD_RESET_CODE_TTL_MINUTES
     send_mail(
         subject='Tu código para recuperar la contraseña — Adiestra360',

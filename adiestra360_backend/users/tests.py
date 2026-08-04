@@ -1,13 +1,19 @@
+import io
+import json
+import urllib.error
+import uuid
 from datetime import timedelta
+from unittest.mock import patch
 
 from django.core import mail
+from django.core.mail import EmailMessage
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework.test import APIClient
 from rest_framework import status
+from .email_backends import BrevoAPIEmailBackend
 from .models import Users, UserStreaks, PasswordResetCodes
-import uuid
 
 
 class RegisterTests(TestCase):
@@ -271,6 +277,80 @@ class PasswordResetTests(TestCase):
         response = self.client.post(self.confirm_url,
                                     {'email': 'valery@test.com'}, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+@override_settings(BREVO_API_KEY='clave-de-prueba')
+class BrevoBackendTests(TestCase):
+    """
+    El backend de Brevo: se comprueba el JSON que se manda y el manejo de
+    errores, sin salir a la red (se sustituye `urlopen`).
+    """
+
+    def setUp(self):
+        self.backend = BrevoAPIEmailBackend()
+        self.message = EmailMessage(
+            subject='Asunto',
+            body='Cuerpo del mensaje',
+            from_email='Adiestra360 <envios@adiestra360.test>',
+            to=['destino@test.com'],
+        )
+
+    def _fake_urlopen(self, captured, status_code=201):
+        """Sustituto de urlopen que guarda la petición y responde con éxito."""
+        class FakeResponse:
+            status = status_code
+
+            def __enter__(inner):
+                return inner
+
+            def __exit__(inner, *args):
+                return False
+
+        def fake(request, timeout=None):
+            captured['url'] = request.full_url
+            captured['headers'] = request.headers
+            captured['body'] = json.loads(request.data.decode('utf-8'))
+            return FakeResponse()
+
+        return fake
+
+    def test_sends_expected_payload(self):
+        captured = {}
+        with patch('urllib.request.urlopen', self._fake_urlopen(captured)):
+            enviados = self.backend.send_messages([self.message])
+
+        self.assertEqual(enviados, 1)
+        self.assertEqual(captured['url'], 'https://api.brevo.com/v3/smtp/email')
+        # urllib normaliza las cabeceras a Capitalized.
+        self.assertEqual(captured['headers']['Api-key'], 'clave-de-prueba')
+        self.assertEqual(captured['body']['subject'], 'Asunto')
+        self.assertEqual(captured['body']['textContent'], 'Cuerpo del mensaje')
+        self.assertEqual(captured['body']['to'], [{'email': 'destino@test.com'}])
+        self.assertEqual(captured['body']['sender'],
+                         {'email': 'envios@adiestra360.test', 'name': 'Adiestra360'})
+
+    def test_http_error_raises_with_provider_detail(self):
+        error = urllib.error.HTTPError(
+            url='x', code=400, msg='Bad Request', hdrs=None,
+            fp=io.BytesIO(b'{"message":"Sender not valid"}'))
+        with patch('urllib.request.urlopen', side_effect=error):
+            with self.assertRaises(RuntimeError) as ctx:
+                self.backend.send_messages([self.message])
+        # El motivo del proveedor debe llegar entero a quien depura.
+        self.assertIn('Sender not valid', str(ctx.exception))
+
+    def test_fail_silently_swallows_the_error(self):
+        error = urllib.error.HTTPError(
+            url='x', code=400, msg='Bad Request', hdrs=None,
+            fp=io.BytesIO(b'{"message":"Sender not valid"}'))
+        backend = BrevoAPIEmailBackend(fail_silently=True)
+        with patch('urllib.request.urlopen', side_effect=error):
+            self.assertEqual(backend.send_messages([self.message]), 0)
+
+    @override_settings(BREVO_API_KEY='')
+    def test_missing_api_key_is_reported(self):
+        with self.assertRaises(ValueError):
+            BrevoAPIEmailBackend().send_messages([self.message])
 
 
 class QuizQuestionsTests(TestCase):

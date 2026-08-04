@@ -160,27 +160,53 @@ instalada.
   para un correo inexistente responde igual que para uno real (no se puede
   averiguar quién está registrado). Solo se envía un correo por minuto y correo.
 
-### Configurar el envío (Gmail)
+### Configurar el envío
 
-1. En la cuenta de Google que va a enviar: activar la **verificación en dos
-   pasos** y crear una **contraseña de aplicación**
-   (`myaccount.google.com/apppasswords`). Es una clave de 16 caracteres, **no**
-   la contraseña normal de la cuenta.
-2. Añadir estas variables en Render (Environment):
+> **Gmail por SMTP no funciona en producción.** Desde septiembre de 2025 Render
+> bloquea el tráfico saliente a los puertos SMTP (25, 465 y 587) en los
+> servicios gratuitos, así que `smtp.gmail.com` es inalcanzable por muy
+> correcta que sea la contraseña de aplicación. Por eso se envía con **Brevo**,
+> que expone el envío sobre HTTPS (300 correos/día gratis, sin tarjeta).
+
+**Producción (Render + Brevo):**
+
+1. Crear cuenta en [brevo.com](https://www.brevo.com) y verificar el correo
+   remitente en **Senders, Domains & Dedicated IPs → Senders** (basta verificar
+   una dirección de Gmail; no hace falta dominio propio).
+2. Generar la clave en **SMTP & API → API Keys** (empieza por `xkeysib-`).
+3. Añadir en Render (Environment):
 
    ```
-   EMAIL_HOST_USER      = tucorreo@gmail.com
-   EMAIL_HOST_PASSWORD  = <contraseña de aplicación>
-   DEFAULT_FROM_EMAIL   = Adiestra360 <tucorreo@gmail.com>
+   BREVO_API_KEY      = xkeysib-...
+   DEFAULT_FROM_EMAIL = Adiestra360 <el-remitente-verificado@gmail.com>
    ```
 
-   `EMAIL_HOST=smtp.gmail.com`, `EMAIL_PORT=587` y `EMAIL_USE_TLS=True` ya son
-   los valores por defecto. Opcionales:
-   `PASSWORD_RESET_CODE_TTL_MINUTES`, `PASSWORD_RESET_MAX_ATTEMPTS`,
-   `PASSWORD_RESET_RESEND_SECONDS`.
+   El remitente **debe** ser el verificado en el paso 1 o Brevo rechaza el
+   envío. Opcionales: `PASSWORD_RESET_CODE_TTL_MINUTES`,
+   `PASSWORD_RESET_MAX_ATTEMPTS`, `PASSWORD_RESET_RESEND_SECONDS`.
 
-3. En local, si `EMAIL_HOST_USER` está vacío el correo se **imprime en la
-   consola** de `runserver`: el código se lee ahí y no hace falta SMTP.
+**Local:** con `EMAIL_HOST_USER` + `EMAIL_HOST_PASSWORD` (contraseña de
+aplicación de Gmail) se usa SMTP, que desde tu máquina sí sale. Sin ninguna
+credencial, el correo se **imprime en la consola** de `runserver` y el código se
+lee ahí.
+
+El transporte se elige solo: `BREVO_API_KEY` → API de Brevo; si no,
+`EMAIL_HOST_USER` → SMTP; si no, consola.
+
+### Diagnóstico cuando no llega el correo
+
+```
+python manage.py test_email tucorreo@gmail.com
+```
+
+Imprime qué transporte está activo y el error exacto del proveedor (clave
+inválida, remitente sin verificar, puerto bloqueado…).
+
+En producción, la pantalla responde siempre lo mismo para no revelar qué
+correos están registrados, así que **el motivo real solo está en los logs de
+Render**. Busca las líneas `Recuperación:` — dicen si el correo no está
+registrado, si se omitió por el límite de 1 por minuto, o si el envío falló y
+por qué.
 
 Pruebas: `python manage.py test users`.
 

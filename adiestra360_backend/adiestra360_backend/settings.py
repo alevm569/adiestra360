@@ -185,20 +185,46 @@ CORS_ALLOW_CREDENTIALS = True
 
 AUTH_USER_MODEL = 'users.Users'
 
+# --- Logs ---
+# Por defecto Django solo escribe en consola cuando DEBUG=True, así que en
+# producción los logs de las apps se perdían. Render captura stdout, y sin esto
+# no habría forma de ver por qué no salió un correo.
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'simple': {'format': '[{levelname}] {name}: {message}', 'style': '{'},
+    },
+    'handlers': {
+        'console': {'class': 'logging.StreamHandler', 'formatter': 'simple'},
+    },
+    'root': {'handlers': ['console'], 'level': os.getenv('LOG_LEVEL', 'INFO')},
+}
+
 # --- Correo (recuperación de contraseña) ---
-# Con EMAIL_HOST_USER definido se envía por SMTP (Gmail con contraseña de
-# aplicación). Sin él, el correo se imprime en la consola: así el flujo se
-# puede probar en local sin credenciales.
+# El transporte se elige por las credenciales que haya, de más a menos capaz:
+#
+#   1. BREVO_API_KEY  -> API HTTP de Brevo. Es la única que funciona en Render
+#      gratis: desde sep-2025 bloquea el tráfico saliente a los puertos SMTP
+#      (25, 465, 587), así que Gmail por SMTP nunca conecta desde producción.
+#   2. EMAIL_HOST_USER -> SMTP clásico. Sirve en local y en hosting de pago.
+#   3. Nada -> se imprime en la consola, para probar el flujo sin credenciales.
+BREVO_API_KEY = os.getenv('BREVO_API_KEY', '')
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
 EMAIL_TIMEOUT = 15
-EMAIL_BACKEND = (
-    'django.core.mail.backends.smtp.EmailBackend' if EMAIL_HOST_USER
-    else 'django.core.mail.backends.console.EmailBackend'
-)
+if BREVO_API_KEY:
+    EMAIL_BACKEND = 'users.email_backends.BrevoAPIEmailBackend'
+elif EMAIL_HOST_USER:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Remitente. Con Brevo tiene que ser un remitente verificado en su panel, o la
+# API rechaza el envío.
 DEFAULT_FROM_EMAIL = os.getenv(
     'DEFAULT_FROM_EMAIL', f'Adiestra360 <{EMAIL_HOST_USER or "no-reply@adiestra360.app"}>')
 

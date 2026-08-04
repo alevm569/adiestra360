@@ -90,25 +90,38 @@ def password_reset_request(request):
         'expires_in_minutes': settings.PASSWORD_RESET_CODE_TTL_MINUTES,
     }
 
+    # La respuesta es siempre la misma, así que el único sitio donde queda
+    # constancia de lo que pasó son estos logs (en Render: pestaña "Logs").
+    # Sin ellos, "no me llegó el código" es indistinguible de "ese correo no
+    # está registrado" y no hay forma de depurarlo en producción.
     user = Users.objects.filter(email__iexact=email).first()
-    if user is None or password_reset.recently_requested(user):
-        # Sin usuario no hay nada que enviar; con envío reciente, se ignora
-        # para no repetir correos. En ambos casos la respuesta es la misma.
+    if user is None:
+        logger.warning('Recuperación: no hay ninguna cuenta con ese correo')
+        return Response(generic, status=status.HTTP_200_OK)
+
+    if password_reset.recently_requested(user):
+        logger.info('Recuperación: se omite el envío a %s (pedido hace <%ss)',
+                    user.email, settings.PASSWORD_RESET_RESEND_SECONDS)
         return Response(generic, status=status.HTTP_200_OK)
 
     code = password_reset.create_code(user)
     try:
         password_reset.send_code_email(user, code)
     except Exception:
-        # Si el correo no sale (SMTP caído o mal configurado), avisamos: sin
-        # esto el usuario esperaría un código que nunca va a llegar.
-        logger.exception('Fallo al enviar el código de recuperación')
+        # Si el correo no sale (SMTP bloqueado, credenciales malas, proveedor
+        # caído), avisamos: sin esto el usuario esperaría un código que nunca
+        # va a llegar. El backend en uso va en el log para saber por dónde
+        # empezar a mirar.
+        logger.exception('Recuperación: falló el envío a %s usando %s',
+                         user.email, settings.EMAIL_BACKEND)
         return Response(
             {'error': 'No pudimos enviar el correo en este momento. '
                       'Inténtalo de nuevo en unos minutos.'},
             status=status.HTTP_503_SERVICE_UNAVAILABLE,
         )
 
+    logger.info('Recuperación: código enviado a %s usando %s',
+                user.email, settings.EMAIL_BACKEND)
     return Response(generic, status=status.HTTP_200_OK)
 
 
