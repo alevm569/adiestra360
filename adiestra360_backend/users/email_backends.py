@@ -99,6 +99,16 @@ class BrevoAPIEmailBackend(BaseEmailBackend):
             # de "remitente no verificado"; sin él, depurar es adivinar.
             detail = exc.read().decode('utf-8', errors='replace')[:500]
             logger.error('Brevo rechazó el envío (HTTP %s): %s', exc.code, detail)
+            if exc.code == 401:
+                # En Render gratis no hay shell, así que la forma de la clave
+                # tiene que verse en el log. Solo el prefijo y la longitud: con
+                # eso se distingue una API key (xkeysib-) de una clave SMTP
+                # (xsmtpsib-, que esta API rechaza) o de una pegada a medias.
+                logger.error(
+                    'Brevo: la clave empieza por %r y mide %s caracteres. '
+                    'Una API key v3 empieza por "xkeysib-"; si empieza por '
+                    '"xsmtpsib-" es la clave SMTP y no sirve aquí.',
+                    self.api_key[:9], len(self.api_key))
             if not self.fail_silently:
                 raise RuntimeError(f'Brevo HTTP {exc.code}: {detail}') from exc
             return False

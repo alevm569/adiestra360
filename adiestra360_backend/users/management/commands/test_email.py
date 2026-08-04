@@ -25,8 +25,21 @@ class Command(BaseCommand):
         self.stdout.write(f'Remitente: {settings.DEFAULT_FROM_EMAIL}')
         if 'Brevo' in settings.EMAIL_BACKEND:
             clave = settings.BREVO_API_KEY
-            self.stdout.write(f'API key:   {clave[:8]}…{clave[-4:]} '
+            self.stdout.write(f'API key:   {clave[:9]}…{clave[-4:]} '
                               f'({len(clave)} caracteres)')
+            # Los dos errores típicos se ven en la forma de la clave, sin
+            # necesidad de llamar a la API.
+            if clave.startswith('xsmtpsib-'):
+                self.stdout.write(self.style.ERROR(
+                    'Esa es la clave SMTP, no la API key. La API v3 la rechaza '
+                    'con "Key not found": genera una en la pestaña API Keys.'))
+            elif not clave.startswith('xkeysib-'):
+                self.stdout.write(self.style.WARNING(
+                    'Una API key v3 de Brevo empieza por "xkeysib-".'))
+            if '…' in clave or '...' in clave or '*' in clave:
+                self.stdout.write(self.style.ERROR(
+                    'La clave está enmascarada: se copió del panel después de '
+                    'cerrar el modal. Hay que generar una nueva.'))
             self.stdout.write(
                 'Recuerda: el remitente de arriba debe estar verificado en Brevo.')
         elif 'smtp' in settings.EMAIL_BACKEND:

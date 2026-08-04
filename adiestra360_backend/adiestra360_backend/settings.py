@@ -209,10 +209,13 @@ LOGGING = {
 #      (25, 465, 587), así que Gmail por SMTP nunca conecta desde producción.
 #   2. EMAIL_HOST_USER -> SMTP clásico. Sirve en local y en hosting de pago.
 #   3. Nada -> se imprime en la consola, para probar el flujo sin credenciales.
-BREVO_API_KEY = os.getenv('BREVO_API_KEY', '')
-EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+# Se recortan los espacios: al pegar claves en el panel de un PaaS es fácil
+# arrastrar un espacio o un salto de línea, y el proveedor responde "clave
+# inválida" sin decir por qué.
+BREVO_API_KEY = os.getenv('BREVO_API_KEY', '').strip()
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com').strip()
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '').strip()
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
 EMAIL_TIMEOUT = 15

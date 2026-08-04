@@ -44,19 +44,25 @@ def recently_requested(user, now=None):
 
 
 def create_code(user):
-    """Invalida los códigos pendientes del usuario y crea uno nuevo."""
+    """
+    Invalida los códigos pendientes del usuario y crea uno nuevo.
+
+    Devuelve (código_en_claro, registro). El registro se devuelve para poder
+    borrarlo si el envío falla: si no, un correo que nunca salió dejaría al
+    usuario bloqueado un minuto por el límite de reenvío.
+    """
     now = timezone.now()
     PasswordResetCodes.objects.filter(user=user, used_at=None).update(used_at=now)
 
     code = _generate_code()
-    PasswordResetCodes.objects.create(
+    entry = PasswordResetCodes.objects.create(
         id=str(uuid.uuid4()),
         user=user,
         code_hash=make_password(code),
         expires_at=now + timedelta(
             minutes=settings.PASSWORD_RESET_CODE_TTL_MINUTES),
     )
-    return code
+    return code, entry
 
 
 def send_code_email(user, code):

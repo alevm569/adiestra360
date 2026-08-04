@@ -104,13 +104,16 @@ def password_reset_request(request):
                     user.email, settings.PASSWORD_RESET_RESEND_SECONDS)
         return Response(generic, status=status.HTTP_200_OK)
 
-    code = password_reset.create_code(user)
+    code, entry = password_reset.create_code(user)
     try:
         password_reset.send_code_email(user, code)
     except Exception:
-        # Si el correo no sale (SMTP bloqueado, credenciales malas, proveedor
-        # caído), avisamos: sin esto el usuario esperaría un código que nunca
-        # va a llegar. El backend en uso va en el log para saber por dónde
+        # El código no llegó a salir, así que se borra: si se quedara, el
+        # límite de un envío por minuto convertiría el reintento en un 200
+        # silencioso y el usuario esperaría un correo que nadie va a mandar.
+        entry.delete()
+        # Si el correo no sale (credenciales malas, puerto bloqueado, proveedor
+        # caído), avisamos. El backend en uso va en el log para saber por dónde
         # empezar a mirar.
         logger.exception('Recuperación: falló el envío a %s usando %s',
                          user.email, settings.EMAIL_BACKEND)

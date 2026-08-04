@@ -208,6 +208,13 @@ Render**. Busca las líneas `Recuperación:` — dicen si el correo no está
 registrado, si se omitió por el límite de 1 por minuto, o si el envío falló y
 por qué.
 
+Errores frecuentes de Brevo:
+
+| Log | Causa | Solución |
+| --- | --- | --- |
+| `HTTP 401: Key not found` | La clave no existe en Brevo: o es la **clave SMTP** (`xsmtpsib-`, la página abre esa pestaña por defecto), o se copió del panel **después** de cerrar el modal y llegó enmascarada. | Generar una nueva en **SMTP & API → API Keys** y copiarla del modal en ese momento; solo se muestra una vez. Empieza por `xkeysib-`. |
+| `HTTP 400: Sender not valid` | El remitente de `DEFAULT_FROM_EMAIL` no está verificado. | Verificarlo en **Senders** y usar exactamente esa dirección. |
+
 Pruebas: `python manage.py test users`.
 
 Cubre el scoring SUS, el upsert de la encuesta y el gateado por email del panel.

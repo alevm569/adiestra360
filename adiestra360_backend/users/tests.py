@@ -266,6 +266,24 @@ class PasswordResetTests(TestCase):
                          format='json')
         self.assertEqual(len(mail.outbox), 1)
 
+    def test_failed_send_does_not_block_the_retry(self):
+        """
+        Si el envío falla, el código se descarta: de lo contrario el límite de
+        un envío por minuto convertía el reintento en un 200 sin correo, y el
+        usuario se quedaba esperando algo que nadie iba a mandar.
+        """
+        with patch('users.password_reset.send_code_email',
+                   side_effect=RuntimeError('proveedor caído')):
+            fallo = self.client.post(self.request_url,
+                                     {'email': 'valery@test.com'}, format='json')
+        self.assertEqual(fallo.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
+        self.assertEqual(PasswordResetCodes.objects.count(), 0)
+
+        # Reintento inmediato: debe intentar enviar de verdad, no omitirse.
+        respuesta, code = self._request_code()
+        self.assertEqual(respuesta.status_code, status.HTTP_200_OK)
+        self.assertIsNotNone(code)
+
     def test_short_password_is_rejected(self):
         _, code = self._request_code()
         response = self.client.post(self.confirm_url, {
