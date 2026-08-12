@@ -4,9 +4,14 @@ gateado por email del panel de métricas.
 
     python manage.py test validation
 """
+import os
+from unittest.mock import patch
+
+from django.core import mail
 from django.test import override_settings
 from rest_framework.test import APITestCase
 
+from users import announcements
 from testkit import make_user, auth_client, create_dog
 from .constants import compute_sus_score, is_simulated_email, SIMULATED_EMAIL_DOMAIN
 from .metrics import build_metrics
@@ -134,3 +139,72 @@ class SimulatedEmailTests(APITestCase):
     def test_domain_detection(self):
         self.assertTrue(is_simulated_email(f'sim-001@{SIMULATED_EMAIL_DOMAIN}'))
         self.assertFalse(is_simulated_email('real@gmail.com'))
+
+
+@override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
+class AnnouncementTests(APITestCase):
+    """
+    El aviso masivo va a los correos reales de los participantes, así que lo
+    que se comprueba es quién puede dispararlo y a quién llega.
+    """
+
+    def setUp(self):
+        self.admin = make_user(email='boss@test.com', name='Boss')
+        self.plain = make_user(email='user@test.com', name='User')
+        self.simulado = make_user(email=f'sim-001@{SIMULATED_EMAIL_DOMAIN}',
+                                  name='Simulado')
+        os.environ['VALIDATION_ADMIN_EMAILS'] = 'boss@test.com'
+        self.addCleanup(os.environ.pop, 'VALIDATION_ADMIN_EMAILS', None)
+        mail.outbox = []
+
+    def test_non_admin_forbidden(self):
+        res = auth_client(self.plain).post('/api/validation/announcement/')
+        self.assertEqual(res.status_code, 403)
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_dry_run_lists_recipients_without_sending(self):
+        res = auth_client(self.admin).post(
+            '/api/validation/announcement/', {'dry_run': True}, format='json')
+        self.assertEqual(res.status_code, 200)
+        emails = [r['email'] for r in res.data['recipients']]
+        self.assertIn('user@test.com', emails)
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_sends_one_email_per_real_user(self):
+        res = auth_client(self.admin).post('/api/validation/announcement/')
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.data['sent'], 2)
+        self.assertEqual(res.data['failed'], [])
+        # Un mensaje por persona: nadie ve la dirección de los demás.
+        self.assertEqual(len(mail.outbox), 2)
+        for message in mail.outbox:
+            self.assertEqual(len(message.to), 1)
+            self.assertEqual(message.cc, [])
+            self.assertEqual(message.bcc, [])
+
+    def test_simulated_users_excluded_by_default(self):
+        auth_client(self.admin).post('/api/validation/announcement/')
+        destinatarios = {m.to[0] for m in mail.outbox}
+        self.assertNotIn(self.simulado.email, destinatarios)
+
+    def test_body_greets_each_user_by_name(self):
+        auth_client(self.admin).post('/api/validation/announcement/')
+        cuerpos = {m.to[0]: m.body for m in mail.outbox}
+        self.assertIn('Hola User:', cuerpos['user@test.com'])
+        self.assertIn(announcements.DEADLINE, cuerpos['user@test.com'])
+
+    def test_one_failure_does_not_stop_the_rest(self):
+        # Un rebote no puede dejar sin avisar a los demás participantes.
+        original = announcements.send_to
+
+        def flaky(user, subject=None, template=None):
+            if user.email == 'boss@test.com':
+                return 'SMTPException: rebotado'
+            return original(user, subject, template)
+
+        with patch.object(announcements, 'send_to', flaky):
+            res = auth_client(self.admin).post('/api/validation/announcement/')
+
+        self.assertEqual(res.data['sent'], 1)
+        self.assertEqual(res.data['failed'],
+                         [{'email': 'boss@test.com', 'error': 'SMTPException: rebotado'}])

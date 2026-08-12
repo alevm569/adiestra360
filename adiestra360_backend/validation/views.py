@@ -3,6 +3,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from users import announcements
 from users.models import Users
 from .models import SurveyResponses
 from .serializers import SurveyResponseSerializer
@@ -57,3 +58,44 @@ def metrics(request):
     de los simulados.
     """
     return Response(build_metrics())
+
+
+@api_view(['POST'])
+@permission_classes([IsMetricsAdmin])
+def announcement(request):
+    """
+    Envía el aviso de cierre de la recogida de datos a todos los usuarios
+    (solo emails en VALIDATION_ADMIN_EMAILS).
+
+    Existe como endpoint porque el plan gratuito de Render no da shell: sin
+    él no habría forma de lanzar el envío contra la base de datos real.
+
+    Body opcional:
+        {"dry_run": true}            -> devuelve destinatarios y texto, sin enviar
+        {"include_simulated": true}  -> incluye los usuarios de prueba
+        {"subject": "..."}           -> asunto alternativo
+    """
+    include_simulated = bool(request.data.get('include_simulated'))
+    destinatarios = announcements.recipients(include_simulated)
+
+    if not destinatarios:
+        return Response({'error': 'No hay destinatarios.'},
+                        status=status.HTTP_400_BAD_REQUEST)
+
+    if request.data.get('dry_run'):
+        return Response({
+            'dry_run': True,
+            'subject': request.data.get('subject') or announcements.SUBJECT,
+            'recipients': [{'name': u.name, 'email': u.email} for u in destinatarios],
+            'preview': announcements.render_body(destinatarios[0]),
+        })
+
+    enviados, fallidos = announcements.broadcast(
+        include_simulated=include_simulated,
+        subject=request.data.get('subject'),
+    )
+    return Response({
+        'sent': len(enviados),
+        'total': len(destinatarios),
+        'failed': [{'email': e, 'error': motivo} for e, motivo in fallidos],
+    })

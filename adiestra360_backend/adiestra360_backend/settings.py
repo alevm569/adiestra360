@@ -231,6 +231,10 @@ else:
 DEFAULT_FROM_EMAIL = os.getenv(
     'DEFAULT_FROM_EMAIL', f'Adiestra360 <{EMAIL_HOST_USER or "no-reply@adiestra360.app"}>')
 
+# URL pública de la PWA. Solo se usa para poner enlaces directos en los correos
+# de aviso; si no está definida, el correo indica la ruta dentro de la app.
+APP_PUBLIC_URL = os.getenv('APP_PUBLIC_URL', '').strip()
+
 # Recuperación de contraseña: código de 6 dígitos de un solo uso.
 PASSWORD_RESET_CODE_TTL_MINUTES = int(os.getenv('PASSWORD_RESET_CODE_TTL_MINUTES', '15'))
 PASSWORD_RESET_MAX_ATTEMPTS = int(os.getenv('PASSWORD_RESET_MAX_ATTEMPTS', '5'))
