@@ -268,6 +268,21 @@ class DominatedExerciseConfirmationTests(TestCase):
         response = self._evaluate()
         self.assertFalse(response.data['exercise_mastered'])
 
+    def test_level_completes_once_the_dominated_exercise_is_confirmed(self):
+        """
+        El nivel no puede quedar bloqueado por un ejercicio que la encuesta dio
+        por sabido: `check_level_completed` le exige su sesión de confirmación,
+        así que la app tiene que dejar registrarla. Cuando el front los ocultaba
+        de la sesión del día (los daba por superados sin más), esa confirmación
+        no llegaba nunca y el perro no subía de nivel jamás.
+        """
+        create_session(self.dog, self.ex, self.comida, success=True)
+        response = self._evaluate()
+        self.assertTrue(response.data['exercise_mastered'])
+        self.assertTrue(response.data['level_upgraded'])
+        self.dog.refresh_from_db()
+        self.assertEqual(self.dog.training_level, 2)
+
 
 class UpdateReinforcementTests(TestCase):
     """PUT /plan/<dog_id>/exercise/<plan_exercise_id>/reinforcement/"""

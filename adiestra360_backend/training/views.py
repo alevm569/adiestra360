@@ -145,10 +145,14 @@ def unlock_next_exercise(dog, plan):
     if not next_exercise:
         return None
 
-    # Refuerzo: el de un ejercicio activo del plan, o cualquiera disponible.
+    # Refuerzo: el del primer ejercicio activo del plan, o cualquiera disponible.
+    # El `order_by` es necesario: sin él la fila la elige la base de datos y el
+    # ejercicio nuevo heredaba un refuerzo u otro de forma impredecible.
     current_reinforcement = (
-        TrainingPlanExercises.objects.filter(training_plan=plan, active=True).first()
-        or TrainingPlanExercises.objects.filter(training_plan=plan).first()
+        TrainingPlanExercises.objects
+        .filter(training_plan=plan, active=True).order_by('order_number', 'id').first()
+        or TrainingPlanExercises.objects
+        .filter(training_plan=plan).order_by('order_number', 'id').first()
     )
     reinforcement = current_reinforcement.reinforcement_type if current_reinforcement else \
         ReinforcementTypes.objects.first()
@@ -196,7 +200,7 @@ def upgrade_to_next_level(dog, plan):
     # Refuerzo de referencia (tomado del plan actual, antes de inactivar).
     reinforcement = TrainingPlanExercises.objects.filter(
         training_plan=plan
-    ).first()
+    ).order_by('order_number', 'id').first()
     reinforcement_type = reinforcement.reinforcement_type if reinforcement else \
         ReinforcementTypes.objects.first()
 

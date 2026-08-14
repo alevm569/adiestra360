@@ -137,14 +137,22 @@ function DogResolver({ onLogout }: { onLogout: () => void }) {
 
 /** Estado de un ejercicio según su progreso real en las sesiones. */
 function exerciseState(e: PlanExerciseItem, progress?: ExerciseProgress) {
-  const mastered = e.dominated || progress?.mastered
-  if (mastered)
+  if (progress?.mastered)
     return {
       label: "Superado",
       tone: "bg-primary-soft text-primary-deep",
       icon: "check_circle",
       fill: true,
       done: true,
+    }
+  // Lo marcó la encuesta como sabido: falta una sola sesión que lo confirme.
+  if (e.dominated && (!progress || progress.total_sessions === 0))
+    return {
+      label: "Confirmar",
+      tone: "bg-primary-soft text-primary-deep",
+      icon: "task_alt",
+      fill: false,
+      done: false,
     }
   if (!progress || progress.total_sessions === 0)
     return {

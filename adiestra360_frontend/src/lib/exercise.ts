@@ -19,11 +19,18 @@ export const masteredExerciseIds = (progress?: ExerciseProgress[]) =>
   new Set((progress ?? []).filter((p) => p.mastered).map((p) => p.exercise_id))
 
 /**
- * Un ejercicio está "superado" si lo detectó la encuesta (dominated) o si se
- * dominó entrenando (mastered en exercise_progress).
+ * Un ejercicio está "superado" cuando lo dice `exercise_progress.mastered`, que
+ * el backend calcula con la regla de desbloqueo (`check_exercise_mastered`).
+ *
+ * OJO: `dominated` (lo que dijo la encuesta de alta) NO basta. La regla del
+ * backend pide una sesión Excelente de confirmación incluso para los ejercicios
+ * que el dueño marcó como sabidos, y `check_level_completed` la exige para
+ * subir de nivel. Cuando aquí se daban por superados sin más, esos ejercicios
+ * desaparecían de la sesión del día, nunca recibían su confirmación y el perro
+ * se quedaba atascado en el nivel para siempre.
  */
 export const isSuperado = (e: PlanExerciseItem, masteredIds: Set<string>) =>
-  e.dominated || masteredIds.has(e.exercise.id)
+  masteredIds.has(e.exercise.id)
 
 /** Resultado de un ejercicio según los criterios de avance marcados. */
 export type SessionResult = "reforzar" | "bien" | "excelente"

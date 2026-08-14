@@ -144,9 +144,15 @@ def get_current_reinforcement(dog_id):
 
     # Preferir un ejercicio ACTIVO del plan (los inactivos son de niveles
     # ya superados); como respaldo, cualquiera del plan.
+    # El orden es explícito a propósito: sin `order_by`, la fila que devuelve
+    # `.first()` la elige la base de datos y con dos ejercicios activos que usan
+    # refuerzos distintos el "refuerzo actual" salía uno u otro entre llamadas.
+    # Se toma el primero del plan, que es el que encabeza la lista en la app.
     plan_exercise = (
-        TrainingPlanExercises.objects.filter(training_plan=plan, active=True).first()
-        or TrainingPlanExercises.objects.filter(training_plan=plan).first()
+        TrainingPlanExercises.objects
+        .filter(training_plan=plan, active=True).order_by('order_number', 'id').first()
+        or TrainingPlanExercises.objects
+        .filter(training_plan=plan).order_by('order_number', 'id').first()
     )
 
     level_number = 1
@@ -327,7 +333,7 @@ def analyze_and_recommend(request, dog_id):
     plan = TrainingPlans.objects.filter(dog_id=dog_id, active=True).first()
     current_plan_exercise = TrainingPlanExercises.objects.filter(
         training_plan=plan
-    ).first()
+    ).order_by('order_number', 'id').first()
 
     category = 'global'
     if current_plan_exercise and level_number == 2:

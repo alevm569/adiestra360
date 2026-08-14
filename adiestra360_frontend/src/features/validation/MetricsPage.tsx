@@ -118,6 +118,13 @@ function Segment({ segment }: { segment: MetricsSegment }) {
         {u.users} usuario(s) · {u.dogs} perro(s)
       </p>
       <div className="grid grid-cols-2 gap-2.5">
+        {/* La activación va primero: sin ella, las medias por usuario mezclan a
+            quien usó la app con quien se registró y nunca entrenó. */}
+        <Kpi
+          icon="how_to_reg"
+          value={`${u.active_users}/${u.users}`}
+          label={`Activados (${pct(u.activation_rate)})`}
+        />
         <Kpi icon="check_circle" value={pct(u.success_rate)} label="Tasa de éxito" />
         <Kpi icon="fitness_center" value={u.total_sessions} label="Sesiones" />
         <Kpi

@@ -22,6 +22,9 @@ const formatDate = (iso: string) => {
 function statusOf(e: PlanExerciseItem, masteredIds: Set<string>) {
   if (isSuperado(e, masteredIds))
     return { label: "Superado", tone: "bg-primary-soft text-primary-deep", icon: "check_circle", fill: true }
+  // Sabido según la encuesta: espera su sesión de confirmación.
+  if (e.dominated)
+    return { label: "Confirmar", tone: "bg-primary-soft text-primary-deep", icon: "task_alt", fill: false }
   if (e.active)
     return {
       label: "En progreso",

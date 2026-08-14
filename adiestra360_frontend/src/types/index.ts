@@ -350,6 +350,10 @@ export type SurveySubmission = Record<`q${number}`, number> & {
 
 export interface UsageMetrics {
   users: number
+  /** Registrados que llegaron a entrenar al menos una vez. */
+  active_users: number
+  /** active_users / users, en porcentaje. */
+  activation_rate: number
   dogs: number
   /** Dueños con 2 o más perros registrados. */
   multi_dog_users: number

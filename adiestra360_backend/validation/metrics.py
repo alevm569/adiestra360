@@ -19,6 +19,7 @@ from .models import SurveyResponses
 from .constants import (
     SUS_QUESTIONS, SUS_ITEM_COUNT, sus_adjective, is_simulated_email,
 )
+from .timeutils import days_by_key
 
 
 def _round(value, ndigits=1):
@@ -105,14 +106,10 @@ def _usage_metrics(user_ids):
     criteria_completion = _round(mean(ratios) * 100) if ratios else None
 
     # Días activos por usuario (fechas distintas con al menos una sesión).
-    day_rows = (
-        sessions.values_list('dog__user_id', 'session_date__date')
-        .distinct()
-    )
-    days_by_user = {}
-    for uid, _day in day_rows:
-        days_by_user[uid] = days_by_user.get(uid, 0) + 1
-    active_days_values = list(days_by_user.values())
+    # El día se calcula en Python a propósito: ver validation/timeutils.py.
+    days_by_user = days_by_key(
+        sessions.values_list('dog__user_id', 'session_date'))
+    active_days_values = [len(days) for days in days_by_user.values()]
 
     streaks = UserStreaks.objects.filter(user_id__in=user_ids)
     xp_values = list(Users.objects.filter(id__in=user_ids)
@@ -127,8 +124,13 @@ def _usage_metrics(user_ids):
     mastered, plan_exercises = _mastered_exercises(dog_ids)
 
     n_users = len(user_ids)
+    # Cuántos de los registrados llegaron a entrenar alguna vez. Sin este dato,
+    # las medias por usuario mezclan a quien usó la app con quien nunca entró.
+    active_users = len(days_by_user)
     return {
         'users': n_users,
+        'active_users': active_users,
+        'activation_rate': _round(active_users / n_users * 100) if n_users else 0.0,
         'dogs': len(dog_ids),
         'multi_dog_users': multi_dog_users,
         'max_dogs_per_user': max_dogs_per_user,

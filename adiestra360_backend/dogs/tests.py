@@ -48,7 +48,8 @@ class CreateDogProfileTests(TestCase):
         register_response = self.client.post('/api/auth/register/', {
             'name': 'Valery',
             'email': 'valery@test.com',
-            'password': 'test1234'
+            'password': 'test1234',
+            'research_consent': True,
         }, format='json')
         self.token = register_response.data['tokens']['access']
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.token}')
@@ -139,7 +140,8 @@ class ListAndDetailDogTests(TestCase):
         register_response = self.client.post('/api/auth/register/', {
             'name': 'Valery',
             'email': 'valery@test.com',
-            'password': 'test1234'
+            'password': 'test1234',
+            'research_consent': True,
         }, format='json')
         self.token = register_response.data['tokens']['access']
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.token}')
@@ -219,7 +221,8 @@ class CrossUserAccessTests(TestCase):
 
         # Usuario dueño del perro
         owner_resp = self.client.post('/api/auth/register/', {
-            'name': 'Dueño', 'email': 'owner@test.com', 'password': 'test1234'
+            'name': 'Dueño', 'email': 'owner@test.com', 'password': 'test1234',
+            'research_consent': True,
         }, format='json')
         self.client.credentials(
             HTTP_AUTHORIZATION=f"Bearer {owner_resp.data['tokens']['access']}"
@@ -235,7 +238,8 @@ class CrossUserAccessTests(TestCase):
 
         # Segundo usuario (intruso); el cliente queda autenticado como él
         intruder_resp = self.client.post('/api/auth/register/', {
-            'name': 'Intruso', 'email': 'intruder@test.com', 'password': 'test1234'
+            'name': 'Intruso', 'email': 'intruder@test.com', 'password': 'test1234',
+            'research_consent': True,
         }, format='json')
         self.client.credentials(
             HTTP_AUTHORIZATION=f"Bearer {intruder_resp.data['tokens']['access']}"
