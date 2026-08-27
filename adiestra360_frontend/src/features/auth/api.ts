@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query"
 import { api } from "@/lib/api"
-import { useAuth } from "@/stores/authStore"
+import { startSession } from "@/lib/session"
 import type { AuthResponse } from "@/types"
 
 interface LoginPayload {
@@ -44,19 +44,17 @@ async function registerRequest(payload: RegisterPayload): Promise<AuthResponse> 
 
 /** Inicia sesión y guarda tokens + usuario en el store de auth. */
 export function useLogin() {
-  const setAuth = useAuth((s) => s.setAuth)
   return useMutation({
     mutationFn: loginRequest,
-    onSuccess: (data) => setAuth(data.tokens, data.user),
+    onSuccess: (data) => startSession(data.tokens, data.user),
   })
 }
 
 /** Registra un usuario nuevo y lo deja autenticado. */
 export function useRegister() {
-  const setAuth = useAuth((s) => s.setAuth)
   return useMutation({
     mutationFn: registerRequest,
-    onSuccess: (data) => setAuth(data.tokens, data.user),
+    onSuccess: (data) => startSession(data.tokens, data.user),
   })
 }
 
@@ -78,7 +76,6 @@ export function useRequestPasswordReset() {
  * que el usuario entra directo sin volver a escribir lo que acaba de crear.
  */
 export function useConfirmPasswordReset() {
-  const setAuth = useAuth((s) => s.setAuth)
   return useMutation({
     mutationFn: async (payload: PasswordResetConfirmPayload) => {
       const { data } = await api.post<AuthResponse>(
@@ -87,7 +84,7 @@ export function useConfirmPasswordReset() {
       )
       return data
     },
-    onSuccess: (data) => setAuth(data.tokens, data.user),
+    onSuccess: (data) => startSession(data.tokens, data.user),
   })
 }
 

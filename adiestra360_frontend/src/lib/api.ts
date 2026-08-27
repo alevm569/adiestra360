@@ -1,11 +1,17 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios"
 import { useAuth } from "@/stores/authStore"
+import { signOut } from "@/lib/session"
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000/api"
 
 export const api = axios.create({
   baseURL: BASE_URL,
 })
+
+/** True si el error viene de un 404 del backend (recurso ajeno o borrado). */
+export function isNotFound(error: unknown): boolean {
+  return axios.isAxiosError(error) && error.response?.status === 404
+}
 
 // Cliente "limpio" sin interceptores, solo para renovar el token
 // (evita un bucle infinito de refresh si el propio refresh diera 401).
@@ -56,7 +62,9 @@ api.interceptors.response.use(
         return api(original)
       } catch (refreshError) {
         refreshPromise = null
-        useAuth.getState().logout()
+        // Sesión caducada: se limpia igual que un logout manual (tokens +
+        // caché), para que la siguiente cuenta no herede nada.
+        signOut()
         return Promise.reject(refreshError)
       }
     }

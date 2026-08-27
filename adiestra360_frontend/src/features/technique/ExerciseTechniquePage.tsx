@@ -4,14 +4,14 @@ import { cn } from "@/lib/utils"
 import { cap, reinforcementIcon } from "@/lib/exercise"
 import { Icon } from "@/components/Icon"
 import { Button } from "@/components/ui/button"
-import { useDogStore } from "@/stores/dogStore"
+import { useActiveDogId } from "@/stores/dogStore"
 import { useExerciseTechnique } from "./api"
 import type { StepAlternative, TechniqueStep } from "@/types"
 
 export function ExerciseTechniquePage() {
   const navigate = useNavigate()
   const { exerciseId } = useParams()
-  const activeDogId = useDogStore((s) => s.activeDogId)
+  const activeDogId = useActiveDogId()
   const { data, isLoading, isError } = useExerciseTechnique(exerciseId, activeDogId)
 
   if (!activeDogId) return <Navigate to="/" replace />

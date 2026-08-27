@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils"
 import { cap, reinforcementIcon, storedSessionResult, RESULT_META } from "@/lib/exercise"
 import { Icon } from "@/components/Icon"
 import { Button } from "@/components/ui/button"
-import { useDogStore } from "@/stores/dogStore"
+import { useActiveDogId } from "@/stores/dogStore"
 import { useSessionHistory } from "./api"
 import type { TrainingSessionRecord } from "@/types"
 
@@ -51,7 +51,7 @@ function groupByDay(sessions: TrainingSessionRecord[]): DayGroup[] {
 
 export function HistoryPage() {
   const navigate = useNavigate()
-  const activeDogId = useDogStore((s) => s.activeDogId)
+  const activeDogId = useActiveDogId()
   const { data, isLoading, isError } = useSessionHistory(activeDogId)
 
   if (!activeDogId) return <Navigate to="/" replace />

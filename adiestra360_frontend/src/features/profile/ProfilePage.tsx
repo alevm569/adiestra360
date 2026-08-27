@@ -5,6 +5,7 @@ import { Icon } from "@/components/Icon"
 import { BottomNav } from "@/components/BottomNav"
 import { Button } from "@/components/ui/button"
 import { ProgressRulesSheet } from "@/features/help/ProgressRules"
+import { signOut } from "@/lib/session"
 import { useAuth } from "@/stores/authStore"
 import { useUserStats, useUserAchievements } from "./api"
 import type { UserStats } from "@/types"
@@ -17,7 +18,6 @@ const LEVEL_FLOOR: Record<string, number> = {
 
 export function ProfilePage() {
   const user = useAuth((s) => s.user)
-  const logout = useAuth((s) => s.logout)
   const stats = useUserStats()
   const achievements = useUserAchievements()
   const [rulesOpen, setRulesOpen] = useState(false)
@@ -98,7 +98,7 @@ export function ProfilePage() {
               to="/validacion/metricas"
             />
           )}
-          <MenuItem icon="logout" label="Cerrar sesión" danger onClick={logout} />
+          <MenuItem icon="logout" label="Cerrar sesión" danger onClick={signOut} />
         </div>
       </div>
 

@@ -5,7 +5,7 @@ import { Icon } from "@/components/Icon"
 import { Ring } from "@/components/Ring"
 import { BottomNav } from "@/components/BottomNav"
 import { Button } from "@/components/ui/button"
-import { useDogStore } from "@/stores/dogStore"
+import { useActiveDogId } from "@/stores/dogStore"
 import { useDashboard } from "@/features/dashboard/api"
 import { ProgressRulesButton } from "@/features/help/ProgressRules"
 import { useRecommendationHistory } from "@/features/recommendations/api"
@@ -36,7 +36,7 @@ function statusOf(e: PlanExerciseItem, masteredIds: Set<string>) {
 }
 
 export function PlanPage() {
-  const activeDogId = useDogStore((s) => s.activeDogId)
+  const activeDogId = useActiveDogId()
   const { data, isLoading, isError } = useDashboard(activeDogId)
   const history = useRecommendationHistory(activeDogId)
   const plan = data?.plan

@@ -7,8 +7,10 @@ import { Icon } from "@/components/Icon"
 import { Ring } from "@/components/Ring"
 import { BottomNav } from "@/components/BottomNav"
 import { Button } from "@/components/ui/button"
+import { isNotFound } from "@/lib/api"
+import { signOut } from "@/lib/session"
 import { useAuth } from "@/stores/authStore"
-import { useDogStore } from "@/stores/dogStore"
+import { useActiveDogId, useDogStore } from "@/stores/dogStore"
 import { useDogs } from "@/features/dogs/api"
 import { useDashboard } from "./api"
 import { ProgressRulesButton } from "@/features/help/ProgressRules"
@@ -24,17 +26,25 @@ import type {
 
 export function DashboardPage() {
   const user = useAuth((s) => s.user)
-  const logout = useAuth((s) => s.logout)
-  const activeDogId = useDogStore((s) => s.activeDogId)
-  const { data, isLoading, isError, refetch } = useDashboard(activeDogId)
+  const activeDogId = useActiveDogId()
+  const clearActiveDog = useDogStore((s) => s.clearActiveDog)
+  const { data, isLoading, isError, error, refetch } = useDashboard(activeDogId)
+
+  // 404 = el perro guardado no es de esta cuenta (o lo borraron). Se suelta la
+  // selección para que el resolver vuelva a elegir, en vez de dejar la pantalla
+  // en blanco pidiendo siempre un perro que no existe.
+  const dogGone = isNotFound(error)
+  useEffect(() => {
+    if (dogGone) clearActiveDog()
+  }, [dogGone, clearActiveDog])
 
   // Sin perro activo local: resolver contra el backend (0 / 1 / varios).
-  if (!activeDogId) return <DogResolver onLogout={logout} />
+  if (!activeDogId) return <DogResolver onLogout={signOut} />
 
   return (
     <div className="flex h-dvh flex-col">
       <div className="min-h-0 flex-1 overflow-y-auto px-5 pt-safe">
-        <TopBar onLogout={logout} />
+        <TopBar onLogout={signOut} />
 
         <div className="mt-1 mb-4">
           <p className="text-sm font-extrabold text-muted-foreground">

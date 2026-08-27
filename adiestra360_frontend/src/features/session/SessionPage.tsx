@@ -11,7 +11,7 @@ import {
 } from "@/lib/exercise"
 import { Icon } from "@/components/Icon"
 import { Button } from "@/components/ui/button"
-import { useDogStore } from "@/stores/dogStore"
+import { useActiveDogId } from "@/stores/dogStore"
 import { useDashboard } from "@/features/dashboard/api"
 import {
   useTrainSession,
@@ -23,7 +23,7 @@ import type { PlanExerciseItem } from "@/types"
 
 export function SessionPage() {
   const navigate = useNavigate()
-  const activeDogId = useDogStore((s) => s.activeDogId)
+  const activeDogId = useActiveDogId()
   const { data, isLoading } = useDashboard(activeDogId)
   const train = useTrainSession(activeDogId)
 

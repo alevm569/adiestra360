@@ -5,12 +5,12 @@ import { cap } from "@/lib/exercise"
 import { Icon } from "@/components/Icon"
 import { Button } from "@/components/ui/button"
 import { usePhotoPicker } from "@/features/photo/usePhotoPicker"
-import { useDogStore } from "@/stores/dogStore"
+import { useActiveDogId, useDogStore } from "@/stores/dogStore"
 import { useDogs, useUpdateDogPhoto } from "./api"
 
 export function DogsPage() {
   const navigate = useNavigate()
-  const activeDogId = useDogStore((s) => s.activeDogId)
+  const activeDogId = useActiveDogId()
   const setActiveDog = useDogStore((s) => s.setActiveDog)
   const { data: dogs, isLoading, isError } = useDogs()
   const updatePhoto = useUpdateDogPhoto()
