@@ -229,8 +229,15 @@ function DashboardContent({
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between">
             <b className="truncate font-display text-lg">{dog.name}</b>
-            <span className="rounded-full bg-primary-soft px-2 py-0.5 text-[10px] font-extrabold text-primary-deep">
-              {gamification.user_level}
+            {/* Ojo: este nivel es el TUYO (XP de toda la cuenta, sumando todos
+                los perros), no el del perro — el del perro es el "Nv" del aro.
+                Va etiquetado para que no se lea como si el perro fuera avanzado. */}
+            <span
+              title="Tu nivel como guía, según el XP de toda tu cuenta"
+              className="flex flex-none items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] font-extrabold text-muted-foreground"
+            >
+              <Icon name="person" fill className="text-[12px]" />
+              Guía: {gamification.user_level}
             </span>
           </div>
           <p className="mb-2 truncate text-xs font-bold text-muted-foreground">
