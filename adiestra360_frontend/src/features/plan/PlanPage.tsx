@@ -163,12 +163,12 @@ export function PlanPage() {
           </>
         )}
 
-        {/* Historial de consejos de la IA */}
+        {/* Historial de consejos del plan */}
         {history.data && history.data.length > 0 && (
           <div className="mb-6">
             <div className="mb-2.5 flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">
               <Icon name="lightbulb" fill className="text-sm text-coral" />
-              Consejos de la IA
+              Consejos para tu plan
             </div>
             {history.data.map((r) => (
               <div key={r.id} className="mb-2.5 rounded-2xl border border-border bg-card p-3.5">

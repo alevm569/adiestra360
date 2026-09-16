@@ -77,7 +77,7 @@ const RULES: { icon: string; tone: string; title: string; body: ReactNode }[] = 
   {
     icon: "lightbulb",
     tone: "bg-coral-soft text-coral-deep",
-    title: "Cuándo la IA sugiere cambiar el refuerzo",
+    title: "Cuándo la app sugiere cambiar el refuerzo",
     body: (
       <>
         Con al menos 3 sesiones y una tasa de éxito <b>por debajo del 50%</b>, la app te

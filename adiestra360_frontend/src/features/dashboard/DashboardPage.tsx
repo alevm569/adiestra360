@@ -131,7 +131,7 @@ function DogResolver({ onLogout }: { onLogout: () => void }) {
             <Icon name="pets" fill className="text-3xl" />
           </div>
           <p className="mb-4 text-sm font-semibold text-muted-foreground">
-            Aún no registras a tu perro. Crea su perfil y la IA armará su plan.
+            Aún no registras a tu perro. Crea su perfil y armaremos su plan personalizado.
           </p>
           <Button asChild className="h-12 w-full rounded-xl text-base font-extrabold">
             <Link to="/onboarding/dog">
@@ -281,7 +281,7 @@ function DashboardContent({
       {/* Desempeño (rendimiento del entrenamiento) */}
       {stats.total_sessions > 0 && <PerformanceCard stats={stats} />}
 
-      {/* Recomendación de la IA */}
+      {/* Recomendación del motor de reglas */}
       {data.active_recommendation && plan && (
         <RecommendationCard
           rec={data.active_recommendation}
@@ -472,7 +472,7 @@ function RecommendationCard({
     <div className="mb-4 rounded-2xl border border-coral-soft bg-coral-soft/50 p-4">
       <div className="mb-1 flex items-center gap-2 font-display text-sm font-extrabold text-coral-deep">
         <Icon name="lightbulb" fill className="text-lg" />
-        La IA tiene una sugerencia
+        Tenemos una sugerencia para ti
       </div>
       <p className="text-sm font-semibold">
         Prueba el refuerzo <b>{rec.recommended_strategy_name}</b> en vez de{" "}

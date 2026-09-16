@@ -192,7 +192,7 @@ export function QuizPage() {
       >
         {isLast ? (
           <>
-            {createDog.isPending ? "Generando…" : "Generar plan con IA"}
+            {createDog.isPending ? "Generando…" : "Generar mi plan personalizado"}
             <Icon name="auto_awesome" className="text-xl" />
           </>
         ) : (

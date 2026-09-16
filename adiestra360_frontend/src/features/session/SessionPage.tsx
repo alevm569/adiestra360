@@ -404,12 +404,12 @@ function SessionSuccess({
         })}
       </div>
 
-      {/* Recomendación de refuerzo de la IA */}
+      {/* Recomendación de refuerzo del motor de reglas */}
       {data.recommendation && (
         <div className="mt-3 rounded-2xl border border-coral-soft bg-coral-soft/50 p-4 text-left">
           <div className="mb-1 flex items-center gap-2 font-display text-sm font-extrabold text-coral-deep">
             <Icon name="lightbulb" fill className="text-lg" />
-            Sugerencia de la IA
+            Sugerencia para tu plan
           </div>
           <p className="text-sm font-semibold">
             Prueba el refuerzo <b>{data.recommendation.recommendedName}</b>
